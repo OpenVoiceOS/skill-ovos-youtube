@@ -124,7 +124,7 @@ class MP3DemoSkill(MycroftSkill):
             ## modified video link
             # video_link = re.sub('watch\?v=',r'v/',video_link)
 
-            video_title = n.attributes['title']
+            video_title = n.attributes['title'] #"Mix" in video_title[:4]  or "mix" in video_title[:4] or
             if "cover" in video_title or "live" in video_title or "Live" in video_title or "Cover" in video_title or "LIVE" in video_title or "COVER" in video_title:
                 pass #dont want these
             else:
@@ -140,13 +140,18 @@ class MP3DemoSkill(MycroftSkill):
         self.video_link_title_keylist = self.video_link_title_dict.keys()
         music = []
         for title in self.video_link_title_keylist:
-            # print 'downloading title with counter: ', counter
-            if not counter:
-                return random.choice(music)  #some margin for randomness, first result isnt always accurate, (gets slower...)
-            print 'downloading title: ', title
-            path = self.download_video(self.video_link_title_dict[title], title)
-            music.append(path)
-            counter = counter - 1
+            try:
+                title = title.encode('ascii')
+                # print 'downloading title with counter: ', counter
+                if not counter:
+                    return random.choice(music)  #some margin for randomness, first result isnt always accurate, (gets slower...)
+                print 'downloading title: ', title
+                path = self.download_video(self.video_link_title_dict[title], title)
+                music.append(path)
+                counter = counter - 1
+            except:
+                print "illegal characters in youtube name" + title + "\n trying next result"
+
 
     def download_video(self, video_link, video_title):
         #reformat video title
