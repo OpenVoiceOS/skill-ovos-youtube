@@ -124,8 +124,10 @@ class MP3DemoSkill(MycroftSkill):
             ## modified video link
             # video_link = re.sub('watch\?v=',r'v/',video_link)
 
-            video_title = n.attributes['title'] #"Mix" in video_title[:4]  or "mix" in video_title[:4] or
-            if "cover" in video_title or "live" in video_title or "Live" in video_title or "Cover" in video_title or "LIVE" in video_title or "COVER" in video_title:
+            video_title = n.attributes['title'] #"Mix" in video_title[:4]  or "mix" i(n video_title[:4] or
+            ile = video_title.lower()
+            if "cover" in ile or "live" in ile or "acustic" in ile or "acoustic" in ile or "lesson" in ile:
+                print "found blacklisted term, bypassing song: " + ile
                 pass #dont want these
             else:
                 each_video_link_title_dict[video_title] = 'https://www.youtube.com' + video_link
@@ -156,6 +158,7 @@ class MP3DemoSkill(MycroftSkill):
     def download_video(self, video_link, video_title):
         #reformat video title
         video_title = re.sub(" ", "_", video_title)
+        video_title = re.sub("/", "_", video_title)
         video_title = video_title.lower()
         video_title = video_title.encode(encoding='UTF-8', errors='strict')   #remove some forbidden chars from youtueb names
             #this is supposed to fix an error that occurs randomly, cant reproduce it for a while now so im guessing the fix worked
