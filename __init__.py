@@ -22,8 +22,9 @@
 
 import subprocess
 import os
-from os.path import dirname, join
-from os import listdir
+import requests
+from lxml import html
+import bs4
 import re
 import random
 
@@ -59,9 +60,20 @@ class MP3DemoSkill(MycroftSkill):
 
         ## Storage
         self.video_download_folder = self.config["save"]
+        self.dbfolder = self.video_download_folder + "/metal"
+
+        if not os.path.exists(self.video_download_folder):
+            os.makedirs(self.video_download_folder)
+        if not os.path.exists(self.dbfolder):
+            os.makedirs(self.dbfolder)
+
+        ## Search Terns
+        path = os.path.dirname(__file__) + '/searchterms.txt'
+        with open(path) as f:
+            self.search = f.readlines()
 
     def initialize(self):
-        self.load_data_files(dirname(__file__))
+       # self.load_data_files(dirname(__file__))
 
         prefixes = [
             'youtube', 'play', 'play from youtube','youtube play','pm']
@@ -69,6 +81,12 @@ class MP3DemoSkill(MycroftSkill):
 
         play_song_intent = IntentBuilder("PlaySongIntent").require("Title").build()
         self.register_intent(play_song_intent, self.handle_play_song_intent)
+
+        dl_metal_intent = IntentBuilder("DownloadMetalIntent").require("metaldbKeyword").build()
+        self.register_intent(dl_metal_intent, self.handle_add_to_metal_db_intent)
+
+        dl_music_intent = IntentBuilder("DownloadMusicIntent").require("musicdbKeyword").build()
+        self.register_intent(dl_music_intent, self.handle_add_to_db_intent)
 
     def __register_prefixed_regex(self, prefixes, suffix_regex):
         for prefix in prefixes:
@@ -81,13 +99,68 @@ class MP3DemoSkill(MycroftSkill):
         #self.speak_dialog("play.song", {'title': title})
         # download song from youtube
         #self.speak("please wait while mp3 is downloaded")
+        self.video_download_folder = self.video_download_folder + "/play"
+
         path = self.dlsong(title)
         self.process = subprocess.Popen(["cvlc", str(path)])
 
-    def dlsong(self, search_key):
+        self.add_result("Requested_Song", title)
+        self.add_result("Song_Download_Path", path)
+
+        self.emit_results()
+        # return to standard download folder
+        self.video_download_folder = self.config["save"]
+
+    def handle_add_to_metal_db_intent(self, message):
+
+        try:
+            num = message.data["dlnum"]
+        except:
+            num = 15
+        name , style = self.get_band()
+        txt = "Downloading "+style+" music from "+name
+        self.speak(txt)
+        # check if folders exist
+        style_folder = self.dbfolder+"/"+style
+        if not os.path.exists(style_folder):
+            os.makedirs(style_folder)
+
+        band_folder = style_folder + "/" + name
+        if not os.path.exists(band_folder):
+            os.makedirs(band_folder)
+        #set new download path
+        self.video_download_folder = band_folder
+
+        searchstr=name+" "+style
+        self.dlsong(searchstr, 15)
+        #return to standard download folder
+        self.video_download_folder = self.config["save"]
+
+    def handle_add_to_db_intent(self, message):
+        try:
+            num = message.data["dlnum"]
+        except:
+            num = 15
+
+        name = random.choice(self.search)
+
+        txt = "Downloading "+name
+        self.speak(txt)
+        # check if folders exist
+        style_folder = self.video_download_folder+"/"+name
+        if not os.path.exists(style_folder):
+            os.makedirs(style_folder)
+
+        #set new download path
+        self.video_download_folder = style_folder
+        self.dlsong(name, num)
+        #return to standard download folder
+        self.video_download_folder = self.config["save"]
+
+    def dlsong(self, search_key, num = 1):
         self.yt_search_key = search_key
         self.get_individual_video_link()
-        song = self.download_all_videos(dl_limit=1)
+        song = self.download_all_videos(dl_limit=num)
         print song
         # for some randmness we can increase above dl limit and randomly get one of the results
         self.video_link_title_dict.clear()
@@ -148,12 +221,27 @@ class MP3DemoSkill(MycroftSkill):
                 if not counter:
                     return random.choice(music)  #some margin for randomness, first result isnt always accurate, (gets slower...)
                 print 'downloading title: ', title
+
+                self.add_result("Dowloaded_Song", title)
+
                 path = self.download_video(self.video_link_title_dict[title], title)
                 music.append(path)
                 counter = counter - 1
             except:
                 print "illegal characters in youtube name" + title + "\n trying next result"
 
+    def get_band(self):
+        while True:
+            try:
+                response = requests.get('http://www.metal-archives.com/band/random')
+                tree = html.fromstring(response.content)
+                soup = bs4.BeautifulSoup(response.text, "lxml")
+
+                Name = soup.select('h1 a[href^=http://www.metal-archives.com]')[0].get_text()
+                Style = tree.xpath(".//*[@id='band_stats']/dl[2]/dd[1]/text()")[0]
+                return Name, Style
+            except:
+                pass
 
     def download_video(self, video_link, video_title):
         #reformat video title
