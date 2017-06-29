@@ -56,8 +56,8 @@ class YoutubeSkill(MycroftSkill):
 
         ## TODO Search Terns
         path = os.path.dirname(__file__) + '/searchterms.txt'
-        #with open(path) as f:
-        #    self.search_terms = f.readlines()
+        with open(path) as f:
+            self.search_terms = f.readlines()
 
     def initialize(self):
 
@@ -76,10 +76,11 @@ class YoutubeSkill(MycroftSkill):
         # TODO seperate artist and song
         videos = []
         url = "https://www.youtube.com/watch?v="
+        self.log.info("Searching youtube for " + title)
         for v in self.search(title):
             if "channel" not in v and "list" not in v and "user" not in v:
                 videos.append(url + v)
-
+        self.log.info("Youtube Links:" + str(videos))
         if "fbchat_" in target:
             self.speak("Here is youtube link", metadata={"url":videos[0]})
         else:
