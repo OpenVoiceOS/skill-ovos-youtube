@@ -20,75 +20,77 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
-import json
-import subprocess
 import os
-from adapt.intent import IntentBuilder
-from os.path import dirname
-import youtube_dl
 import urllib
 import urllib2
 from bs4 import BeautifulSoup
+import subprocess
 
 #mycroft
 from adapt.intent import IntentBuilder
 from mycroft.skills.core import MycroftSkill
 from mycroft.util.log import getLogger
-from mycroft.skills.audioservice import AudioService
+#from mycroft.skills.audioservice import AudioService
+
 __author__ = 'jarbas'
 
 LOGGER = getLogger(__name__)
 
+import logging
+logging.getLogger("chardet.charsetprober").setLevel(logging.WARNING)
 
-class MP3DemoSkill(MycroftSkill):
 
+class YoutubeSkill(MycroftSkill):
     def __init__(self):
-        super(MP3DemoSkill, self).__init__(name="MusicSkill")
-        ## Storage
+        super(YoutubeSkill, self).__init__(name="YoutubeSkill")
+        self.audio_service = None
+        self.p = None
+        ## TODO Storage
         try:
-            self.savedir = self.config["save"]
+            self.savedir = self.config.get("save_path", os.path.dirname(__file__) + "/music")
         except:
             self.savedir = os.path.dirname(__file__) + "/music"
 
         if not os.path.exists(self.savedir):
             os.makedirs(self.savedir)
 
-        ## Search Terns
+        ## TODO Search Terns
         path = os.path.dirname(__file__) + '/searchterms.txt'
-        with open(path) as f:
-            self.search = f.readlines()
+        #with open(path) as f:
+        #    self.search_terms = f.readlines()
 
     def initialize(self):
 
-        prefixes = [
-            'youtube', 'play', 'play from youtube','youtube play','pm']
-        self.__register_prefixed_regex(prefixes, "(?P<Title>.*)")
+        # initialize audio service
+        #self.audio_service = AudioService(self.emitter)
 
-
-       # initialize audio service
-        self.audio_service = AudioService(self.emitter)
-
-        play_song_intent = IntentBuilder("PlaySongIntent").require("Title").build()
+        play_song_intent = IntentBuilder("PlayYoutubeIntent").require("Title").build()
         self.register_intent(play_song_intent, self.handle_play_song_intent)
-
-    def __register_prefixed_regex(self, prefixes, suffix_regex):
-        for prefix in prefixes:
-            self.register_regex(prefix + ' ' + suffix_regex)
 
     def handle_play_song_intent(self, message):
         # Play the song requested
         title = message.data.get("Title")
+        target = message.data.get("target", "all")
+        utterance = message.data.get("utterance", "")
+        self.speak("searching youtube for " + title)
         # TODO seperate artist and song
-        artist = "youtube-dl"
-        video_links = self.search(title)
-        song_path = self.download(artist, title, video_links[0])
-        self.audio_service.play([song_path], "")
+        videos = []
+        url = "https://www.youtube.com/watch?v="
+        for v in self.search(title):
+            if "channel" not in v and "list" not in v and "user" not in v:
+                videos.append(url + v)
 
-
-    @staticmethod
-    def get_url(video):
-        return youtube_dl.YoutubeDL().extract_info('http://www.youtube.com/watch?v=' + video, False).get("formats")[
-            0].get("url")
+        if "fbchat_" in target:
+            self.speak("Here is youtube link", metadata={"url":videos[0]})
+        else:
+            #self.audio_service.play(videos, utterance + " in vlc")
+            command = ['cvlc']
+            command.append('--no-video') # disables video output.
+            command.append('--play-and-exit') # close cvlc after play
+            command.append('--quiet') # deactivates all console messages.
+            command.append(videos[0])
+            self.p = subprocess.Popen(command, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+            (out, err) = self.p.communicate()
 
     def search(self, text):
         query = urllib.quote(text)
@@ -103,34 +105,12 @@ class MP3DemoSkill(MycroftSkill):
                 videos.append(video['href'].replace("/watch?v=", ""))
         return videos
 
-    def download(self, artist, title, link):
-        # create YouTube downloader
-        options = {
-            'format': 'bestaudio/best',  # choice of quality
-            'extractaudio': True,  # only keep the audio
-            'audioformat': "mp3",  # convert to mp3
-            'outtmpl': '%(id)s',  # name the file the ID of the video
-            'noplaylist': True, }  # only download single song, not playlist
-        ydl = youtube_dl.YoutubeDL(options)
-        savepath = os.path.join(self.savedir, "%s--%s.mp3" % (title, artist))
-        with ydl:
-            print "Downloading: %s from %s..." % (title, link)
-
-            # download location, check for progress
-
-            try:
-                os.stat(savepath)
-                print "%s already downloaded, continuing..." % savepath
-            except OSError:
-                # download video
-                try:
-                    result = ydl.extract_info(row.Link, download=True)
-                    os.rename(result['id'], savepath)
-                    print "Downloaded and converted %s successfully!" % savepath
-
-                except Exception as e:
-                    print "Can't download audio! %s\n" % traceback.format_exc()
-        return savepath
+    def stop(self):
+        # TODO find better way
+        #command = ["killall","cvlc"]
+        #(out, err) = subprocess.Popen(command, stdout=subprocess.PIPE, stderr=subprocess.PIPE).communicate()
+        if self.p:
+            self.p.terminate()
 
 def create_skill():
-    return MP3DemoSkill()
+    return YoutubeSkill()
