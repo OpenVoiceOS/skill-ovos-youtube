@@ -1,1 +1,1 @@
-sudo apt-get install cvlc
+sudo apt-get install vlc

@@ -51,8 +51,8 @@ class YoutubeSkill(MycroftSkill):
         except:
             self.savedir = os.path.dirname(__file__) + "/music"
 
-        if not os.path.exists(self.savedir):
-            os.makedirs(self.savedir)
+        #if not os.path.exists(self.savedir):
+        #    os.makedirs(self.savedir)
 
         ## TODO Search Terns
         path = os.path.dirname(__file__) + '/searchterms.txt'
