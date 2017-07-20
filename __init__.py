@@ -30,6 +30,7 @@ import subprocess
 from adapt.intent import IntentBuilder
 from mycroft.skills.core import MycroftSkill
 from mycroft.util.log import getLogger
+from os.path import dirname
 #from mycroft.skills.audioservice import AudioService
 
 __author__ = 'jarbas'
@@ -60,7 +61,7 @@ class YoutubeSkill(MycroftSkill):
             self.search_terms = f.readlines()
 
     def initialize(self):
-
+        self.load_data_files(dirname(__file__))
         # initialize audio service
         #self.audio_service = AudioService(self.emitter)
 
