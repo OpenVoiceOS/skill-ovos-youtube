@@ -24,7 +24,7 @@ import urllib
 import urllib2
 from bs4 import BeautifulSoup
 import subprocess
-
+from os.path import join
 from mycroft.skills.core import MycroftSkill
 __author__ = 'jarbas'
 
@@ -41,14 +41,11 @@ class YoutubeSkill(MycroftSkill):
     def initialize(self):
 
         self.register_intent_file("youtube.intent", self.handle_play_song_intent)
-        #play_song_intent = IntentBuilder("PlayYoutubeIntent").require(
-        # "Title").build()
-        #self.register_intent(play_song_intent, self.handle_play_song_intent)
 
     def handle_play_song_intent(self, message):
         # Play the song requested
         title = message.data.get("music")
-        self.speak("searching youtube for " + title)
+        self.speak_dialog("searching.youtube", {"music": title})
         # TODO seperate artist and song
         videos = []
         url = "https://www.youtube.com/watch?v="
@@ -57,6 +54,15 @@ class YoutubeSkill(MycroftSkill):
             if "channel" not in v and "list" not in v and "user" not in v:
                 videos.append(url + v)
         self.log.info("Youtube Links:" + str(videos))
+        # Display info on a screen
+        self.enclosure.deactivate_mouth_events()
+        # music code
+        png = join(self.root_dir, "music.png")
+
+        self.enclosure.mouth_display_png(png,
+                                         threshold=70,
+                                         invert=False, x=10, y=0,
+                                         refresh=True)
 
         #self.audio_service.play(videos, utterance + "vlc")
         command = ['cvlc']
@@ -83,6 +89,8 @@ class YoutubeSkill(MycroftSkill):
     def stop(self):
         #command = ["killall","cvlc"]
         #(out, err) = subprocess.Popen(command, stdout=subprocess.PIPE, stderr=subprocess.PIPE).communicate()
+        self.enclosure.activate_mouth_events()
+        self.enclosure.mouth_reset()
         if self.p:
             self.p.terminate()
 
