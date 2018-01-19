@@ -20,22 +20,13 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
-import os
 import urllib
 import urllib2
 from bs4 import BeautifulSoup
 import subprocess
 
-#mycroft
-from adapt.intent import IntentBuilder
 from mycroft.skills.core import MycroftSkill
-from mycroft.util.log import getLogger
-from os.path import dirname
-#from mycroft.skills.audioservice import AudioService
-
 __author__ = 'jarbas'
-
-LOGGER = getLogger(__name__)
 
 import logging
 logging.getLogger("chardet.charsetprober").setLevel(logging.WARNING)
@@ -46,33 +37,17 @@ class YoutubeSkill(MycroftSkill):
         super(YoutubeSkill, self).__init__(name="YoutubeSkill")
         self.audio_service = None
         self.p = None
-        ## TODO Storage
-        try:
-            self.savedir = self.config.get("save_path", os.path.dirname(__file__) + "/music")
-        except:
-            self.savedir = os.path.dirname(__file__) + "/music"
-
-        #if not os.path.exists(self.savedir):
-        #    os.makedirs(self.savedir)
-
-        ## TODO Search Terns
-        path = os.path.dirname(__file__) + '/searchterms.txt'
-        with open(path) as f:
-            self.search_terms = f.readlines()
 
     def initialize(self):
-        self.load_data_files(dirname(__file__))
-        # initialize audio service
-        #self.audio_service = AudioService(self.emitter)
 
-        play_song_intent = IntentBuilder("PlayYoutubeIntent").require("Title").build()
-        self.register_intent(play_song_intent, self.handle_play_song_intent)
+        self.register_intent_file("youtube.intent", self.handle_play_song_intent)
+        #play_song_intent = IntentBuilder("PlayYoutubeIntent").require(
+        # "Title").build()
+        #self.register_intent(play_song_intent, self.handle_play_song_intent)
 
     def handle_play_song_intent(self, message):
         # Play the song requested
-        title = message.data.get("Title")
-        target = message.data.get("target", "all")
-        utterance = message.data.get("utterance", "")
+        title = message.data.get("music")
         self.speak("searching youtube for " + title)
         # TODO seperate artist and song
         videos = []
@@ -82,17 +57,15 @@ class YoutubeSkill(MycroftSkill):
             if "channel" not in v and "list" not in v and "user" not in v:
                 videos.append(url + v)
         self.log.info("Youtube Links:" + str(videos))
-        if "fbchat_" in target:
-            self.speak("Here is youtube link", metadata={"url":videos[0]})
-        else:
-            #self.audio_service.play(videos, utterance + " in vlc")
-            command = ['cvlc']
-            command.append('--no-video') # disables video output.
-            command.append('--play-and-exit') # close cvlc after play
-            command.append('--quiet') # deactivates all console messages.
-            command.append(videos[0])
-            self.p = subprocess.Popen(command, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-            (out, err) = self.p.communicate()
+
+        #self.audio_service.play(videos, utterance + "vlc")
+        command = ['cvlc']
+        command.append('--no-video') # disables video output.
+        command.append('--play-and-exit') # close cvlc after play
+        command.append('--quiet') # deactivates all console messages.
+        command.append(videos[0])
+        self.p = subprocess.Popen(command, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+        (out, err) = self.p.communicate()
 
     def search(self, text):
         query = urllib.quote(text)
@@ -108,11 +81,11 @@ class YoutubeSkill(MycroftSkill):
         return videos
 
     def stop(self):
-        # TODO find better way
         #command = ["killall","cvlc"]
         #(out, err) = subprocess.Popen(command, stdout=subprocess.PIPE, stderr=subprocess.PIPE).communicate()
         if self.p:
             self.p.terminate()
+
 
 def create_skill():
     return YoutubeSkill()
