@@ -36,6 +36,9 @@ class YoutubeSkill(MycroftSkill):
     def handle_play_song_intent(self, message):
         # Play the song requested
         title = message.data.get("music")
+        # mark 1 hack
+        if AudioService:
+            self.audio_service.stop()
         self.speak_dialog("searching.youtube", {"music": title})
 
         videos = []
