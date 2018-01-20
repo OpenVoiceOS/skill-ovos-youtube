@@ -50,7 +50,6 @@ class YoutubeSkill(MycroftSkill):
         self.enclosure.deactivate_mouth_events()
         # music code
         self.enclosure.mouth_display("IIAEAOOHGAGEGOOHAA",
-                                         threshold=70,
                                          invert=False, x=10, y=0,
                                          refresh=True)
 
