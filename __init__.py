@@ -49,8 +49,7 @@ class YoutubeSkill(MycroftSkill):
         # Display icon on faceplate
         self.enclosure.deactivate_mouth_events()
         # music code
-        self.enclosure.mouth_display("IIAEAOOHGAGEGOOHAA",
-                                         invert=False, x=10, y=0,
+        self.enclosure.mouth_display("IIAEAOOHGAGEGOOHAA", x=10, y=0,
                                          refresh=True)
 
         if AudioService:
