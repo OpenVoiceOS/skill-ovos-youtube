@@ -4,11 +4,19 @@
 import urllib
 import urllib2
 from bs4 import BeautifulSoup
-import subprocess
 from os.path import join
 from mycroft.skills.core import MycroftSkill
+try:
+    from mycroft.skills.audioservice import AudioService
+except ImportError:
+    AudioService = None
+    import subprocess
+
+
 __author__ = 'jarbas'
 
+
+# disable webscrapping logs
 import logging
 logging.getLogger("chardet.charsetprober").setLevel(logging.WARNING)
 
@@ -20,6 +28,8 @@ class YoutubeSkill(MycroftSkill):
         self.p = None
 
     def initialize(self):
+        if AudioService:
+            self.audio_service = AudioService(self.emitter)
 
         self.register_intent_file("youtube.intent", self.handle_play_song_intent)
 
@@ -27,7 +37,7 @@ class YoutubeSkill(MycroftSkill):
         # Play the song requested
         title = message.data.get("music")
         self.speak_dialog("searching.youtube", {"music": title})
-        # TODO seperate artist and song
+
         videos = []
         url = "https://www.youtube.com/watch?v="
         self.log.info("Searching youtube for " + title)
@@ -35,7 +45,8 @@ class YoutubeSkill(MycroftSkill):
             if "channel" not in v and "list" not in v and "user" not in v:
                 videos.append(url + v)
         self.log.info("Youtube Links:" + str(videos))
-        # Display info on a screen
+
+        # Display icon on faceplate
         self.enclosure.deactivate_mouth_events()
         # music code
         png = join(self.root_dir, "music.png")
@@ -45,14 +56,17 @@ class YoutubeSkill(MycroftSkill):
                                          invert=False, x=10, y=0,
                                          refresh=True)
 
-        #self.audio_service.play(videos, utterance + "vlc")
-        command = ['cvlc']
-        command.append('--no-video') # disables video output.
-        command.append('--play-and-exit') # close cvlc after play
-        command.append('--quiet') # deactivates all console messages.
-        command.append(videos[0])
-        self.p = subprocess.Popen(command, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-        (out, err) = self.p.communicate()
+        if AudioService:
+            self.audio_service.play(videos, "vlc")
+        else:
+            command = ['cvlc']
+            command.append('--no-video') # disables video output.
+            command.append('--play-and-exit') # close cvlc after play
+            command.append('--quiet') # deactivates all console messages.
+            command.append(videos[0])
+            self.p = subprocess.Popen(command, stdout=subprocess.PIPE,
+                                      stderr=subprocess.PIPE)
+            (out, err) = self.p.communicate()
 
     def search(self, text):
         query = urllib.quote(text)
@@ -68,8 +82,6 @@ class YoutubeSkill(MycroftSkill):
         return videos
 
     def stop(self):
-        #command = ["killall","cvlc"]
-        #(out, err) = subprocess.Popen(command, stdout=subprocess.PIPE, stderr=subprocess.PIPE).communicate()
         self.enclosure.activate_mouth_events()
         self.enclosure.mouth_reset()
         if self.p:
