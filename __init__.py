@@ -53,6 +53,7 @@ class YoutubeSkill(MycroftSkill):
                                          refresh=True)
 
         if AudioService:
+            self.audio_service.stop()
             self.audio_service.play(videos, "vlc")
         else:
             command = ['cvlc']
