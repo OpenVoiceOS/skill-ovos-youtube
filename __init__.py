@@ -49,9 +49,7 @@ class YoutubeSkill(MycroftSkill):
         # Display icon on faceplate
         self.enclosure.deactivate_mouth_events()
         # music code
-        png = join(self.root_dir, "music.png")
-
-        self.enclosure.mouth_display_png(png,
+        self.enclosure.mouth_display("IIAEAOOHGAGEGOOHAA",
                                          threshold=70,
                                          invert=False, x=10, y=0,
                                          refresh=True)
