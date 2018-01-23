@@ -6,7 +6,12 @@ Its intended to be a cheap way to play anything without any account (eg. spotify
 
 # usage
 
-play "whatever you want" from youtube
+    play "johnny cash" from youtube
+    play "satanic black metal"
 
-desktop launcher skill will activate instead if you say "search youtube"
+# issues
+
+this is made with padatious, any adapt intent may trigger with the search term name before giving a chance to this skill
+
+desktop launcher skill will activate instead if you say "search youtube for X"
 
