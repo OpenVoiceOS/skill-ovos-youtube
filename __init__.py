@@ -4,7 +4,7 @@
 import urllib
 import urllib2
 from bs4 import BeautifulSoup
-from os.path import join
+from mycroft.audio import wait_while_speaking
 from mycroft.skills.core import MycroftSkill
 try:
     from mycroft.skills.audioservice import AudioService
@@ -54,7 +54,7 @@ class YoutubeSkill(MycroftSkill):
         # music code
         self.enclosure.mouth_display("IIAEAOOHGAGEGOOHAA", x=10, y=0,
                                          refresh=True)
-
+        wait_while_speaking()
         if AudioService:
             self.audio_service.stop()
             self.audio_service.play(videos, "vlc")
