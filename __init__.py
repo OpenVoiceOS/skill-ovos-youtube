@@ -1,11 +1,17 @@
 # NO LICENSE
 # These bits are free to do as they please, ones and zeros dont need licence or copyright
 
-import urllib
-import urllib2
+import sys
 from bs4 import BeautifulSoup
 from mycroft.audio import wait_while_speaking
 from mycroft.skills.core import MycroftSkill
+if sys.version_info[0] < 3:
+    from urllib import quote
+    from urllib2 import urlopen
+else:
+    from urllib.request import urlopen
+    from urllib.parse import quote
+
 try:
     from mycroft.skills.audioservice import AudioService
 except ImportError:
@@ -69,9 +75,9 @@ class YoutubeSkill(MycroftSkill):
             (out, err) = self.p.communicate()
 
     def search(self, text):
-        query = urllib.quote(text)
+        query = quote(text)
         url = "https://www.youtube.com/results?search_query=" + query
-        response = urllib2.urlopen(url)
+        response = urlopen(url)
         html = response.read()
         soup = BeautifulSoup(html)
         vid = soup.findAll(attrs={'class': 'yt-uix-tile-link'})
