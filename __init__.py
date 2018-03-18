@@ -1,52 +1,44 @@
-# NO LICENSE
-# These bits are free to do as they please, ones and zeros dont need licence or copyright
-
 import sys
 from bs4 import BeautifulSoup
 from mycroft.audio import wait_while_speaking
-from mycroft.skills.core import MycroftSkill
 if sys.version_info[0] < 3:
     from urllib import quote
     from urllib2 import urlopen
 else:
     from urllib.request import urlopen
     from urllib.parse import quote
-
-try:
-    from mycroft.skills.audioservice import AudioService
-except ImportError:
-    AudioService = None
-    import subprocess
-
-
-__author__ = 'jarbas'
-
-
 # disable webscrapping logs
 import logging
 logging.getLogger("chardet.charsetprober").setLevel(logging.WARNING)
 
+from mycroft.skills.core import intent_handler, IntentBuilder, \
+    intent_file_handler
+from mycroft_jarbas_utils.skills.audio import AudioSkill
 
-class YoutubeSkill(MycroftSkill):
+__author__ = 'jarbas'
+
+
+class YoutubeSkill(AudioSkill):
     def __init__(self):
-        super(YoutubeSkill, self).__init__(name="YoutubeSkill")
-        self.audio_service = None
-        self.p = None
+        super(YoutubeSkill, self).__init__()
+        self.backend_preference = ["chromecast", "mopidy", "vlc", "mpv", "mplayer"]
+        self.add_filter("music")
 
-    def initialize(self):
-        if AudioService:
-            self.audio_service = AudioService(self.emitter)
-
-        self.register_intent_file("youtube.intent", self.handle_play_song_intent)
-
+    @intent_handler(IntentBuilder("YoutubePlay").require(
+        "youtube").require("play"))
     def handle_play_song_intent(self, message):
-        # Play the song requested
-        title = message.data.get("music")
-        # mark 1 hack
-        if AudioService:
-            self.audio_service.stop()
-        self.speak_dialog("searching.youtube", {"music": title})
+        # use adapt if youtube is included in the utterance
+        # use the utterance remainder as query
+        title = message.utterance_remainder()
+        self.youtube_play(title)
 
+    @intent_file_handler("youtube.intent")
+    def handle_play_song_padatious_intent(self, message):
+        # handle a more generic play command and extract name with padatious
+        title = message.data.get("music")
+        self.youtube_play(title)
+
+    def youtube_search(self, title):
         videos = []
         url = "https://www.youtube.com/watch?v="
         self.log.info("Searching youtube for " + title)
@@ -54,25 +46,23 @@ class YoutubeSkill(MycroftSkill):
             if "channel" not in v and "list" not in v and "user" not in v:
                 videos.append(url + v)
         self.log.info("Youtube Links:" + str(videos))
+        return videos
 
-        # Display icon on faceplate
+    def youtube_play(self, title):
+        # Play the song requested
+        if self.audio.is_playing:
+            self.audio.stop()
+        self.speak_dialog("searching.youtube", {"music": title})
+        wait_while_speaking()
+        videos = self.youtube_search(title)
+
+        # deactivate mouth animation
         self.enclosure.deactivate_mouth_events()
         # music code
         self.enclosure.mouth_display("IIAEAOOHGAGEGOOHAA", x=10, y=0,
                                          refresh=True)
-        wait_while_speaking()
-        if AudioService:
-            self.audio_service.stop()
-            self.audio_service.play(videos, "vlc")
-        else:
-            command = ['cvlc']
-            command.append('--no-video') # disables video output.
-            command.append('--play-and-exit') # close cvlc after play
-            command.append('--quiet') # deactivates all console messages.
-            command.append(videos[0])
-            self.p = subprocess.Popen(command, stdout=subprocess.PIPE,
-                                      stderr=subprocess.PIPE)
-            (out, err) = self.p.communicate()
+
+        self.audio.play(videos)
 
     def search(self, text):
         query = quote(text)
@@ -90,8 +80,8 @@ class YoutubeSkill(MycroftSkill):
     def stop(self):
         self.enclosure.activate_mouth_events()
         self.enclosure.mouth_reset()
-        if self.p:
-            self.p.terminate()
+        if self.audio.is_playing:
+            self.audio.stop()
 
 
 def create_skill():
