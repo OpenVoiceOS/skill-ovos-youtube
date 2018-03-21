@@ -20,8 +20,9 @@ __author__ = 'jarbas'
 
 class YoutubeSkill(AudioSkill):
     def __init__(self):
+        self.backend_preference = ["chromecast", "mopidy", "mpv", "vlc",
+                                   "mplayer"]
         super(YoutubeSkill, self).__init__()
-        self.backend_preference = ["chromecast", "mopidy", "vlc", "mpv", "mplayer"]
         self.add_filter("music")
 
     @intent_handler(IntentBuilder("YoutubePlay").require(
