@@ -18,7 +18,6 @@ try:
     from mycroft_jarbas_utils.skills.audio import AudioSkill
 except ImportError:
     from os.path import dirname
-
     sys.path.append(dirname(__file__))
     from audio_skill import AudioSkill
 
@@ -79,9 +78,11 @@ class YoutubeSkill(AudioSkill):
         html = response.read()
         soup = BeautifulSoup(html)
         vid = soup.findAll(attrs={'class': 'yt-uix-tile-link'})
+        videos = []
         if vid:
             for video in vid:
-                yield video['href'].replace("/watch?v=", "")
+                videos.append(video['href'].replace("/watch?v=", ""))
+        return videos
 
     def stop(self):
         self.enclosure.activate_mouth_events()
