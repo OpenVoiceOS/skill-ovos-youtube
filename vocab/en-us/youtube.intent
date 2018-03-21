@@ -1,3 +1,4 @@
 play {music} (from|on|at|in) youtube
 (search|seek) youtube for {music}
 (search|seek|find) {music} (in|on|at|from) youtube
+play {music}
