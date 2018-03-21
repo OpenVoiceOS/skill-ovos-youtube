@@ -7,6 +7,11 @@ if sys.version_info[0] < 3:
 else:
     from urllib.request import urlopen
     from urllib.parse import quote
+
+from os.path import dirname
+sys.path.append(dirname(__file__))
+from audio_skill import AudioSkill
+
 # disable webscrapping logs
 import logging
 logging.getLogger("chardet.charsetprober").setLevel(logging.WARNING)
