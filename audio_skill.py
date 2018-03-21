@@ -26,7 +26,7 @@ class AudioServiceB(AudioService):
 
     def play(self, tracks=None, utterance=''):
         utterance = utterance or self.backend
-        super(AudioService_B, self).play(tracks, utterance)
+        super(AudioServiceB, self).play(tracks, utterance)
 
     def shutdown(self):
         self.emitter.remove('mycroft.audio.service.track_info_reply',
