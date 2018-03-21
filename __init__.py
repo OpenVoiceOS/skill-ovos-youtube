@@ -8,17 +8,19 @@ else:
     from urllib.request import urlopen
     from urllib.parse import quote
 
-from os.path import dirname
-sys.path.append(dirname(__file__))
-from audio_skill import AudioSkill
-
 # disable webscrapping logs
 import logging
 logging.getLogger("chardet.charsetprober").setLevel(logging.WARNING)
 
 from mycroft.skills.core import intent_handler, IntentBuilder, \
     intent_file_handler
-from mycroft_jarbas_utils.skills.audio import AudioSkill
+try:
+    from mycroft_jarbas_utils.skills.audio import AudioSkill
+except ImportError:
+    from os.path import dirname
+
+    sys.path.append(dirname(__file__))
+    from audio_skill import AudioSkill
 
 __author__ = 'jarbas'
 
