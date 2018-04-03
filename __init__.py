@@ -1,5 +1,6 @@
 import sys
 from bs4 import BeautifulSoup
+import pafy
 from mycroft.audio import wait_while_speaking
 if sys.version_info[0] < 3:
     from urllib import quote
@@ -50,9 +51,10 @@ class YoutubeSkill(AudioSkill):
         url = "https://www.youtube.com/watch?v="
         self.log.info("Searching youtube for " + title)
         for v in self.search(title):
-            if "channel" not in v and "list" not in v and "user" not in v:
-                videos.append(url + v)
-        self.log.info("Youtube Links:" + str(videos))
+            if "channel" not in v and "list" not in v and "user" not in v \
+                    and "googleads" not in v:
+                videos.append(v)
+        self.log.info("Youtube Videos:" + str(videos))
         return videos
 
     def youtube_play(self, title):
@@ -69,7 +71,17 @@ class YoutubeSkill(AudioSkill):
         self.enclosure.mouth_display("IIAEAOOHGAGEGOOHAA", x=10, y=0,
                                          refresh=True)
 
-        self.audio.play(videos)
+        self.audio.play(self.get_real_url(videos[0]))
+        for video in videos[1:]:
+            self.audio.queue(self.get_real_url(video))
+
+    def get_real_url(self, video):
+        try:
+            myvid = pafy.new(video)
+            stream = myvid.getbestaudio()
+            return stream.url
+        except Exception as e:
+            self.log.error(e)
 
     def search(self, text):
         query = quote(text)
