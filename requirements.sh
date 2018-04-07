@@ -5,7 +5,7 @@
 #detect distribution using lsb_release (may be replaced parsing /etc/*release)
 dist=$(lsb_release -d |awk '{print$2}')
 
-dependencies=( vlc )
+dependencies=( libvlc-dev )
 
 #setting dependencies and package manager in relation to the distribution
 if [ "$dist"  == "Arch"  ]; then
@@ -28,3 +28,5 @@ for dep in "${dependencies[@]}"
 do
     sudo $pm $dep
 done
+
+exit 0

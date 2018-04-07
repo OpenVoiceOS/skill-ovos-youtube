@@ -1,5 +1,6 @@
 from mycroft.skills.core import MycroftSkill, FallbackSkill, get_handler_name
 from mycroft.util.log import LOG
+from mycroft.util import play_wav, play_mp3
 from mycroft.skills.skill_data import to_letters
 from mycroft.skills.audioservice import AudioService
 from adapt.intent import IntentBuilder, Intent
@@ -30,7 +31,7 @@ class AudioServiceB(AudioService):
 
     def shutdown(self):
         self.emitter.remove('mycroft.audio.service.track_info_reply',
-                        self._track_info)
+                            self._track_info)
         for event, handler in self.events:
             self.emitter.remove(event, handler)
 
@@ -45,12 +46,17 @@ class AudioSkill(MycroftSkill):
                                    "mplayer"]
         super(AudioSkill, self).__init__(name, emitter)
         self.audio = None
+        self.process = None
         self._modifiers = ["in", "on", "at", "from"]
         self._filters = []
         self.backends = []
         self.create_settings_meta()
         if "default_backend" not in self.settings:
             self.settings["default_backend"] = ""
+        if "force_http" not in self.settings:
+            self.settings["force_http"] = False
+        if "use_audio_service" not in self.settings:
+            self.settings["use_audio_service"] = True
         self.backend_preference = [""]
         if self.settings["default_backend"]:
             default = self.settings["default_backend"]
@@ -67,23 +73,43 @@ class AudioSkill(MycroftSkill):
         settings_path = join(self._dir, "settingsmeta.json")
         if not exists(settings_path):
             settings = {
-                    "name": self.name,
-                    "skillMetadata": {
-                        "sections": [
-                            {
-                                "name": "Audio Backend",
-                                "fields": [
-                                    {
-                                        "name": "default_backend",
-                                        "type": "text",
-                                        "label": "default_backend",
-                                        "value": self.backend_preference[0]
-                                    }
-                                ]
-                            }
-                        ]
-                    }
+                "name": self.name,
+                "skillMetadata": {
+                    "sections": [
+                        {
+                            "name": "Audio Configuration",
+                            "fields": [
+                                {
+                                    "name": "default_backend",
+                                    "type": "text",
+                                    "label": "default_backend",
+                                    "value": self.backend_preference[0]
+                                },
+                                {
+                                    "type": "label",
+                                    "label": "By default this skill does not convert https links to http, you may want this depending on your audio setup"
+                                },
+                                {
+                                    "name": "force_http",
+                                    "type": "checkbox",
+                                    "label": "force_http",
+                                    "value": "false"
+                                },
+                                {
+                                    "type": "label",
+                                    "label": "By default this skill uses audio service, you may not want this depending on your audio setup"
+                                },
+                                {
+                                    "name": "use_audio_service",
+                                    "type": "checkbox",
+                                    "label": "use_audio_service",
+                                    "value": "true"
+                                }
+                            ]
+                        }
+                    ]
                 }
+            }
             with open(settings_path, "w") as f:
                 f.write(json.dumps(settings))
 
@@ -103,7 +129,7 @@ class AudioSkill(MycroftSkill):
 
         with open(join(self.vocab_dir, "AudioBackend.entity"), "w") as f:
             for backend in self.backends:
-                f.write(backend+"\n")
+                f.write(backend + "\n")
         self.register_entity_file("AudioBackend.entity")
 
         self.backend_preference = [backend for backend in
@@ -144,9 +170,16 @@ class AudioSkill(MycroftSkill):
         return message
 
     def play(self, tracks):
-        if self.audio.is_playing:
-            self.audio.stop()
-        self.audio.play(tracks)
+        self.stop()
+        if self.settings["use_audio_service"]:
+            self.audio.play(tracks)
+        else:
+            if not isinstance(tracks, list):
+                tracks = [tracks]
+            if ".wav" in tracks[0]:
+                self.process = play_wav(tracks[0])
+            else:
+                self.process = play_mp3(tracks[0])
 
     def register_intent(self, intent_parser, handler, need_self=False):
         skill_id = to_letters(self.skill_id)
@@ -177,8 +210,17 @@ class AudioSkill(MycroftSkill):
         super(AudioSkill, self).register_intent_file(intent_file,
                                                      padatious_handler)
 
+    def stop(self):
+        if self.settings["use_audio_service"]:
+            if self.audio.is_playing:
+                self.audio.stop()
+        if self.process and self.process.poll() is None:
+            self.process.terminate()
+            self.process.wait()
+
     def shutdown(self):
         super(AudioSkill, self).shutdown()
+        self.stop()
         self.audio.shutdown()
 
 
