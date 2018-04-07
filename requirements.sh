@@ -19,7 +19,7 @@ elif [ "$dist" == "Raspbian" ]; then
     do
         pkcon install $dep
     done
-    exit
+    exit 0
 fi
 
 
