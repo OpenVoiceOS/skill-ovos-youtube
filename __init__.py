@@ -1,7 +1,6 @@
 import sys
 from bs4 import BeautifulSoup
 import pafy
-from mycroft.audio import wait_while_speaking
 if sys.version_info[0] < 3:
     from urllib import quote
     from urllib2 import urlopen
@@ -15,12 +14,8 @@ logging.getLogger("chardet.charsetprober").setLevel(logging.WARNING)
 
 from mycroft.skills.core import intent_handler, IntentBuilder, \
     intent_file_handler
-try:
-    from mycroft_jarbas_utils.skills.audio import AudioSkill
-except ImportError:
-    from os.path import dirname
-    sys.path.append(dirname(__file__))
-    from audio_skill import AudioSkill
+from mycroft_jarbas_utils.skills.audio import AudioSkill
+
 
 __author__ = 'jarbas'
 
@@ -48,7 +43,6 @@ class YoutubeSkill(AudioSkill):
 
     def youtube_search(self, title):
         videos = []
-        url = "https://www.youtube.com/watch?v="
         self.log.info("Searching youtube for " + title)
         for v in self.search(title):
             if "channel" not in v and "list" not in v and "user" not in v \
@@ -62,15 +56,7 @@ class YoutubeSkill(AudioSkill):
         if self.audio.is_playing:
             self.audio.stop()
         self.speak_dialog("searching.youtube", {"music": title})
-        wait_while_speaking()
         videos = self.youtube_search(title)
-
-        # deactivate mouth animation
-        self.enclosure.deactivate_mouth_events()
-        # music code
-        self.enclosure.mouth_display("IIAEAOOHGAGEGOOHAA", x=10, y=0,
-                                         refresh=True)
-
         self.audio.play(self.get_real_url(videos[0]))
         for video in videos[1:]:
             self.audio.queue(self.get_real_url(video))
@@ -95,12 +81,6 @@ class YoutubeSkill(AudioSkill):
             for video in vid:
                 videos.append(video['href'].replace("/watch?v=", ""))
         return videos
-
-    def stop(self):
-        self.enclosure.activate_mouth_events()
-        self.enclosure.mouth_reset()
-        if self.audio.is_playing:
-            self.audio.stop()
 
 
 def create_skill():
