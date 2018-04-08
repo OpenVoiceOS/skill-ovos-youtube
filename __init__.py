@@ -124,8 +124,8 @@ class YoutubeSkill(AudioSkill):
         for named_url in self.named_urls:
             self.register_vocabulary("named_url", named_url)
 
-    @intent_handler(IntentBuilder("YoutubeNamedUrlPlay").one_of(
-        "youtube", "play").require("named_url"))
+    @intent_handler(IntentBuilder("YoutubeNamedUrlPlay").require(
+        "youtube").require("play").require("named_url"))
     def handle_named_play(self, message):
         named_url = message.data.get("named_url")
         urls = self.named_urls[named_url]
