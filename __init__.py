@@ -35,7 +35,6 @@ class YoutubeSkill(AudioSkill):
                                    "mplayer"]
         super(YoutubeSkill, self).__init__()
         self.add_filter("music")
-        self.get_playlists_from_file()
         self.settings.set_callback(self.get_playlists_from_file)
 
     def create_settings_meta(self):
@@ -109,8 +108,7 @@ class YoutubeSkill(AudioSkill):
             name = style.replace(".value", "")
             if name not in stations:
                 stations[name] = []
-            style_stations = self.translate_named_playlists(
-                                self.settings["station_files"], style)
+            style_stations = self.translate_named_playlists(style)
             for station_name in style_stations:
                 if station_name not in stations:
                     stations[station_name] = style_stations[station_name]
@@ -121,6 +119,7 @@ class YoutubeSkill(AudioSkill):
         return stations
 
     def initialize(self):
+        self.get_playlists_from_file()
         for named_url in self.named_urls:
             self.register_vocabulary("named_url", named_url)
 
