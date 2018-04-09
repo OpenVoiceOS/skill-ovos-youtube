@@ -28,9 +28,6 @@ __author__ = 'jarbas'
 class YoutubeSkill(AudioSkill):
     def __init__(self):
         self.named_urls = {}
-        if "named_urls" not in self.settings:
-            self.settings["named_urls"] = join(dirname(__file__),
-                                                    "named_urls")
         self.backend_preference = ["chromecast", "mopidy", "mpv", "vlc",
                                    "mplayer"]
         super(YoutubeSkill, self).__init__()
@@ -38,6 +35,9 @@ class YoutubeSkill(AudioSkill):
         self.settings.set_callback(self.get_playlists_from_file)
 
     def create_settings_meta(self):
+        if "named_urls" not in self.settings:
+            self.settings["named_urls"] = join(dirname(__file__),
+                                                    "named_urls")
         meta = {
             "name": "Youtube Skill",
             "skillMetadata": {
