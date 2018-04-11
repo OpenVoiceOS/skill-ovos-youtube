@@ -76,14 +76,14 @@ class YoutubeSkill(AudioSkill):
             with open(settings_path, "w") as f:
                 f.write(json.dumps(meta))
 
-    def translate_named_playlists(self, name, delim=None):
+    def translate_named_urls(self, name, delim=None):
         delim = delim or ','
         result = {}
         if not name.endswith(".value"):
             name += ".value"
 
         try:
-            with open(join(self.settings["playlist_files"], name)) as f:
+            with open(join(self.settings["named_urls"], name)) as f:
                 reader = csv.reader(f, delimiter=delim)
                 for row in reader:
                     # skip blank or comment lines
@@ -103,12 +103,12 @@ class YoutubeSkill(AudioSkill):
         # read configured radio stations
         stations = {}
 
-        styles = listdir(self.settings["playlist_files"])
-        for style in styles:
-            name = style.replace(".value", "")
+        names = listdir(self.settings["named_urls"])
+        for name in names:
+            name = name.replace(".value", "")
             if name not in stations:
                 stations[name] = []
-            style_stations = self.translate_named_playlists(style)
+            style_stations = self.translate_named_urls(name)
             for station_name in style_stations:
                 if station_name not in stations:
                     stations[station_name] = style_stations[station_name]
@@ -196,7 +196,7 @@ class YoutubeSkill(AudioSkill):
         url = "https://www.youtube.com/results?search_query=" + query
         response = urlopen(url)
         html = response.read()
-        soup = BeautifulSoup(html)
+        soup = BeautifulSoup(html, "lxml")
         vid = soup.findAll(attrs={'class': 'yt-uix-tile-link'})
         videos = []
         if vid:
