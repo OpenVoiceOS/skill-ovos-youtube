@@ -106,6 +106,7 @@ class YoutubeSkill(AudioSkill):
             return {}
 
     def get_playlists_from_file(self):
+        self.named_urls = {}  # reset in case pahts changed
         # read configured url aliases
         names = listdir(self.settings["named_urls"])
         for name in names:
@@ -120,6 +121,7 @@ class YoutubeSkill(AudioSkill):
                     self.named_urls[station_name] += style_stations[station_name]
                 self.named_urls[name] += style_stations[station_name]
         self.log.debug("named urls: " + str(self.named_urls))
+        self.initialize()
 
     def initialize(self):
         for named_url in self.named_urls:
