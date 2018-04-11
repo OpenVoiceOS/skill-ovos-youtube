@@ -140,6 +140,8 @@ class YoutubeSkill(AudioSkill):
         named_url = message.data.get("named_url")
         urls = self.named_urls[named_url]
         random.shuffle(urls)
+        # TODO use dialog file
+        self.speak(named_url)
         self.youtube_play(videos=urls)
 
     @intent_handler(IntentBuilder("YoutubePlay").require(
@@ -166,6 +168,8 @@ class YoutubeSkill(AudioSkill):
             # we have a named list that matches
             urls = self.named_urls[best_name]
             random.shuffle(urls)
+            # TODO use dialog
+            self.speak(best_name)
             self.youtube_play(videos=urls)
         else:
             self.youtube_play(title)
