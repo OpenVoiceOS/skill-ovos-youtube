@@ -130,12 +130,12 @@ class YoutubeSkill(AudioSkill):
     def build_vocabs(self):
         try:
             for named_url in self.named_urls:
-                self.register_vocabulary("named_url", named_url)
+                self.register_vocabulary(named_url, "named_url")
         except:
             pass # no emitter, on skill load this happens
 
     @intent_handler(IntentBuilder("YoutubeNamedUrlPlay").optionally(
-        "youtube").require("play").require("named_url"))
+        "youtube").require("play").require("named_url").optionally("music"))
     def handle_named_play(self, message):
         named_url = message.data.get("named_url")
         urls = self.named_urls[named_url]
