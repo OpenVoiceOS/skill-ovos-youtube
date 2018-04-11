@@ -1,6 +1,7 @@
 import sys
 from bs4 import BeautifulSoup
 import pafy
+
 if sys.version_info[0] < 3:
     from urllib import quote
     from urllib2 import urlopen
@@ -10,6 +11,7 @@ else:
 
 # disable webscrapping logs
 import logging
+
 logging.getLogger("chardet.charsetprober").setLevel(logging.WARNING)
 
 from mycroft.skills.core import intent_handler, IntentBuilder, \
@@ -22,7 +24,6 @@ import json
 from os.path import join, dirname, exists
 from mycroft.util.parse import fuzzy_match
 import random
-
 
 __author__ = 'jarbas'
 
@@ -41,39 +42,39 @@ class YoutubeSkill(AudioSkill):
     def create_settings_meta(self):
         if "named_urls" not in self.settings:
             self.settings["named_urls"] = join(dirname(__file__),
-                                                    "named_urls")
+                                               "named_urls")
         meta = {
             "name": "Youtube Skill",
             "skillMetadata": {
-                  "sections": [
-                      {
-                          "name": "Audio Configuration",
-                          "fields": [
-                              {
+                "sections": [
+                    {
+                        "name": "Audio Configuration",
+                        "fields": [
+                            {
                                 "type": "text",
                                 "name": "default_backend",
                                 "value": "vlc",
                                 "label": "default_backend"
-                              }
-                          ]
-                      },
-                      {
-                          "name": "Playlist Configuration",
-                          "fields": [
-                              {
-                                  "type": "label",
-                                  "label": "the files in this directory will be read to create aliases and playlists in this skill, the files must end in '.value' and be valid csv, with content ' song name, youtube url ', 'play filename' will play any of the links inside, 'play song name' will play that song name "
-                              },
-                              {
+                            }
+                        ]
+                    },
+                    {
+                        "name": "Playlist Configuration",
+                        "fields": [
+                            {
+                                "type": "label",
+                                "label": "the files in this directory will be read to create aliases and playlists in this skill, the files must end in '.value' and be valid csv, with content ' song name, youtube url ', 'play filename' will play any of the links inside, 'play song name' will play that song name "
+                            },
+                            {
                                 "type": "text",
                                 "name": "named_urls",
                                 "value": self.settings["named_urls"],
                                 "label": "named_urls"
-                              }
-                            ]
-                        }
-                      ]
-                }
+                            }
+                        ]
+                    }
+                ]
+            }
         }
         settings_path = join(self._dir, "settingsmeta.json")
         if not exists(settings_path):
@@ -121,9 +122,12 @@ class YoutubeSkill(AudioSkill):
                     self.named_urls[station_name] += style_stations[station_name]
                 self.named_urls[name] += style_stations[station_name]
         self.log.debug("named urls: " + str(self.named_urls))
-        self.initialize()
+        self.build_vocabs()
 
     def initialize(self):
+        self.build_vocabs()
+
+    def build_vocabs(self):
         for named_url in self.named_urls:
             self.register_vocabulary("named_url", named_url)
 
