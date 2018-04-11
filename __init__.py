@@ -21,6 +21,8 @@ import csv
 import json
 from os.path import join, dirname, exists
 from mycroft.util.parse import fuzzy_match
+import random
+
 
 __author__ = 'jarbas'
 
@@ -32,6 +34,8 @@ class YoutubeSkill(AudioSkill):
                                    "mplayer"]
         super(YoutubeSkill, self).__init__()
         self.add_filter("music")
+
+        self.get_playlists_from_file()
         self.settings.set_changed_callback(self.get_playlists_from_file)
 
     def create_settings_meta(self):
@@ -91,43 +95,42 @@ class YoutubeSkill(AudioSkill):
                         continue
                     if len(row) != 2:
                         continue
+                    row[0] = row[0].rstrip().lstrip()
+                    row[1] = row[1].rstrip().lstrip()
                     if row[0] not in result.keys():
-                        result[row[0].rstrip().lstrip()] = []
-                    result[row[0]].append(row[1].rstrip().lstrip())
+                        result[row[0]] = []
+                    result[row[0]].append(row[1])
             return result
         except Exception as e:
             self.log.error(str(e))
             return {}
 
     def get_playlists_from_file(self):
-        # read configured radio stations
-        stations = {}
-
+        # read configured url aliases
         names = listdir(self.settings["named_urls"])
         for name in names:
             name = name.replace(".value", "")
-            if name not in stations:
-                stations[name] = []
+            if name not in self.named_urls:
+                self.named_urls[name] = []
             style_stations = self.translate_named_urls(name)
             for station_name in style_stations:
-                if station_name not in stations:
-                    stations[station_name] = style_stations[station_name]
+                if station_name not in self.named_urls:
+                    self.named_urls[station_name] = style_stations[station_name]
                 else:
-                    stations[station_name] += style_stations[station_name]
-                stations[name] += style_stations[station_name]
-
-        return stations
+                    self.named_urls[station_name] += style_stations[station_name]
+                self.named_urls[name] += style_stations[station_name]
+        self.log.debug("named urls: " + str(self.named_urls))
 
     def initialize(self):
-        self.get_playlists_from_file()
         for named_url in self.named_urls:
             self.register_vocabulary("named_url", named_url)
 
-    @intent_handler(IntentBuilder("YoutubeNamedUrlPlay").require(
+    @intent_handler(IntentBuilder("YoutubeNamedUrlPlay").optionally(
         "youtube").require("play").require("named_url"))
     def handle_named_play(self, message):
         named_url = message.data.get("named_url")
         urls = self.named_urls[named_url]
+        random.shuffle(urls)
         self.youtube_play(videos=urls)
 
     @intent_handler(IntentBuilder("YoutubePlay").require(
@@ -153,8 +156,10 @@ class YoutubeSkill(AudioSkill):
         if best_score > 0.6:
             # we have a named list that matches
             urls = self.named_urls[best_name]
+            random.shuffle(urls)
             self.youtube_play(videos=urls)
-        self.youtube_play(title)
+        else:
+            self.youtube_play(title)
 
     def youtube_search(self, title):
         videos = []
