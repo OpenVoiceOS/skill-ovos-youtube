@@ -17,6 +17,9 @@ built on top of [youtube_searcher](https://github.com/HelloChatterbox/youtube_se
 
 ## Examples
 * "play rob zombie"
+* "play freezing moon with dead on vocals"
+* "play programming music mix"
+* "play center of all infinity album"
 
 ## Credits
 JarbasAl

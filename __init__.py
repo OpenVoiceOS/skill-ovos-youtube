@@ -79,8 +79,10 @@ class SimpleYoutubeSkill(BetterCommonPlaySkill):
         def parse_duration(video):
             # parse duration into (int) seconds
             # {'length': '3:49'
+            if not video.get("length"):
+                return 0
             length = 0
-            nums = video.get("length", "").split(":")
+            nums = video["length"].split(":")
             if len(nums) == 1 and nums[0].isdigit():
                 # seconds
                 length = int(nums[0])

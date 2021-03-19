@@ -1,0 +1,24 @@
+{
+  "name": "Simple Youtube Skill",
+  "skillname": "skill-simple-youtube",
+  "authorname": "JarbasSkills",
+  "foldername": "",
+  "url": "https://github.com/JarbasSkills/skill-simple-youtube",
+  "branch": "v0.1",
+  "desktopFile": false,
+  "warning": "",
+  "systemDeps": false,
+  "platforms": [
+    "arm",
+    "arm64",
+    "i386",
+    "x86_64",
+    "ia64"
+  ],
+  "examples": [
+    "play rob zombie",
+    "play freezing moon with dead on vocals",
+    "play programming music mix",
+    "play center of all infinity album"
+  ]
+}
