@@ -1,4 +1,4 @@
-# <img src='./icon.png' width='50' height='50' style='vertical-align:bottom'/> Simple Youtube Skill
+# <img src='./ui/ytube.jpg' width='50' height='50' style='vertical-align:bottom'/> Simple Youtube Skill
 
 simple youtube skill for better-cps
 
