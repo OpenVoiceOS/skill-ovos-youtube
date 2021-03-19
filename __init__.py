@@ -1,227 +1,193 @@
-import sys
-from bs4 import BeautifulSoup
-import pafy
+from os.path import join, dirname
 
-if sys.version_info[0] < 3:
-    from urllib import quote
-    from urllib2 import urlopen
-else:
-    from urllib.request import urlopen
-    from urllib.parse import quote
+from ovos_utils.skills.templates.common_play import BetterCommonPlaySkill
+from ovos_utils.playback import CPSMatchType, CPSPlayback
+from ovos_utils.parse import fuzzy_match, MatchStrategy
 
-# disable webscrapping logs
-import logging
-
-logging.getLogger("chardet.charsetprober").setLevel(logging.WARNING)
-
-from mycroft.skills.core import intent_handler, IntentBuilder, \
-    intent_file_handler
-from mycroft_jarbas_utils.skills.audio import AudioSkill
-
-from os import listdir
-import csv
-import json
-from os.path import join, dirname, exists
-from mycroft.util.parse import fuzzy_match
-import random
-
-__author__ = 'jarbas'
+from youtube_searcher import search_youtube
 
 
-class YoutubeSkill(AudioSkill):
+class SimpleYoutubeSkill(BetterCommonPlaySkill):
     def __init__(self):
-        self.named_urls = {}
-        self.backend_preference = ["chromecast", "mopidy", "mpv", "vlc",
-                                   "mplayer"]
-        super(YoutubeSkill, self).__init__()
-        self.add_filter("music")
+        super(SimpleYoutubeSkill, self).__init__("Simple Youtube")
+        self.supported_media = [CPSMatchType.GENERIC,
+                                CPSMatchType.MUSIC,
+                                CPSMatchType.AUDIO,
+                                CPSMatchType.PODCAST,
+                                CPSMatchType.DOCUMENTARY,
+                                CPSMatchType.VIDEO]
+        self._search_cache = {}
+        self.skill_icon = join(dirname(__file__), "ui", "ytube.jpg")
+        if "fallback_mode" not in self.settings:
+            self.settings["fallback_mode"] = False
 
-        self.get_playlists_from_file()
-        self.settings.set_changed_callback(self.get_playlists_from_file)
+    # common play
+    def CPS_search(self, phrase, media_type=CPSMatchType.GENERIC):
+        """Analyze phrase to see if it is a play-able phrase with this skill.
 
-    def create_settings_meta(self):
-        if "named_urls" not in self.settings:
-            self.settings["named_urls"] = join(dirname(__file__),
-                                               "named_urls")
-        meta = {
-            "name": "Youtube Skill",
-            "skillMetadata": {
-                "sections": [
-                    {
-                        "name": "Audio Configuration",
-                        "fields": [
-                            {
-                                "type": "text",
-                                "name": "default_backend",
-                                "value": "vlc",
-                                "label": "default_backend"
-                            }
-                        ]
-                    },
-                    {
-                        "name": "Playlist Configuration",
-                        "fields": [
-                            {
-                                "type": "label",
-                                "label": "the files in this directory will be read to create aliases and playlists in this skill, the files must end in '.value' and be valid csv, with content ' song name, youtube url ', 'play filename' will play any of the links inside, 'play song name' will play that song name "
-                            },
-                            {
-                                "type": "text",
-                                "name": "named_urls",
-                                "value": self.settings["named_urls"],
-                                "label": "named_urls"
-                            }
-                        ]
-                    }
-                ]
+        Arguments:
+            phrase (str): User phrase uttered after "Play", e.g. "some music"
+            media_type (CPSMatchType): requested CPSMatchType to search for
+
+        Returns:
+            search_results (list): list of dictionaries with result entries
+            {
+                "match_confidence": CPSMatchConfidence.HIGH,
+                "media_type":  CPSMatchType.MUSIC,
+                "uri": "https://audioservice.or.gui.will.play.this",
+                "playback": CPSPlayback.GUI,
+                "image": "http://optional.audioservice.jpg",
+                "bg_image": "http://optional.audioservice.background.jpg"
             }
-        }
-        settings_path = join(self._dir, "settingsmeta.json")
-        if not exists(settings_path):
-            with open(settings_path, "w") as f:
-                f.write(json.dumps(meta))
+        """
+        # match the request media_type
+        base_score = 0
+        if media_type == CPSMatchType.MUSIC:
+            base_score += 15
+        elif media_type == CPSMatchType.VIDEO:
+            base_score += 25
 
-    def translate_named_urls(self, name, delim=None):
-        delim = delim or ','
-        result = {}
-        if not name.endswith(".value"):
-            name += ".value"
+        explicit_request = False
+        if self.voc_match(phrase, "youtube"):
+            # explicitly requested youtube
+            base_score += 50
+            phrase = self.remove_voc(phrase, "youtube")
+            explicit_request = True
 
-        try:
-            with open(join(self.settings["named_urls"], name)) as f:
-                reader = csv.reader(f, delimiter=delim)
-                for row in reader:
-                    # skip blank or comment lines
-                    if not row or row[0].startswith("#"):
-                        continue
-                    if len(row) != 2:
-                        continue
-                    row[0] = row[0].rstrip().lstrip()
-                    row[1] = row[1].rstrip().lstrip()
-                    if row[0] not in result.keys():
-                        result[row[0]] = []
-                    result[row[0]].append(row[1])
-            return result
-        except Exception as e:
-            self.log.error(str(e))
-            return {}
-
-    def get_playlists_from_file(self):
-        self.named_urls = {}  # reset in case pahts changed
-        # read configured url aliases
-        names = listdir(self.settings["named_urls"])
-        for name in names:
-            name = name.replace(".value", "")
-            if name not in self.named_urls:
-                self.named_urls[name] = []
-            style_stations = self.translate_named_urls(name)
-            for station_name in style_stations:
-                if station_name not in self.named_urls:
-                    self.named_urls[station_name] = style_stations[station_name]
-                else:
-                    self.named_urls[station_name] += style_stations[station_name]
-                self.named_urls[name] += style_stations[station_name]
-        self.log.debug("named urls: " + str(self.named_urls))
-        self.build_vocabs()
-
-    def initialize(self):
-        self.build_vocabs()
-
-    def build_vocabs(self):
-        try:
-            for named_url in self.named_urls:
-                self.register_vocabulary(named_url, "named_url")
-        except:
-            pass # no emitter, on skill load this happens
-
-    @intent_handler(IntentBuilder("YoutubeNamedUrlPlay").optionally(
-        "youtube").require("play").require("named_url").optionally("music"))
-    def handle_named_play(self, message):
-        named_url = message.data.get("named_url")
-        urls = self.named_urls[named_url]
-        random.shuffle(urls)
-        # TODO use dialog file
-        self.speak(named_url)
-        self.youtube_play(videos=urls)
-
-    @intent_handler(IntentBuilder("YoutubePlay").require(
-        "youtube").require("play"))
-    def handle_play_song_intent(self, message):
-        # use adapt if youtube is included in the utterance
-        # use the utterance remainder as query
-        title = message.utterance_remainder()
-        self.youtube_play(title)
-
-    @intent_file_handler("youtube.intent")
-    def handle_play_song_padatious_intent(self, message):
-        # handle a more generic play command and extract name with padatious
-        title = message.data.get("music")
-        # fuzzy match with playlists
-        best_score = 0
-        best_name = ""
-        for name in self.named_urls:
-            score = fuzzy_match(title, name)
-            if score > best_score:
-                best_score = score
-                best_name = name
-        if best_score > 0.6:
-            # we have a named list that matches
-            urls = self.named_urls[best_name]
-            random.shuffle(urls)
-            # TODO use dialog
-            self.speak(best_name)
-            self.youtube_play(videos=urls)
+        # playback_type defines if results should be GUI / AUDIO / AUDIO + GUI
+        # this could be done at individual match level instead if needed
+        if media_type == CPSMatchType.AUDIO:  # TODO or not self.gui.connected
+            playback = [CPSPlayback.AUDIO]
+        elif media_type != CPSMatchType.VIDEO:
+            playback = [CPSPlayback.GUI, CPSPlayback.AUDIO]
         else:
-            self.youtube_play(title)
+            playback = [CPSPlayback.GUI]
 
-    def youtube_search(self, title):
-        videos = []
-        self.log.info("Searching youtube for " + title)
-        for v in self.search(title):
-            if "channel" not in v and "list" not in v and "user" not in v \
-                    and "googleads" not in v:
-                videos.append(v)
-        self.log.info("Youtube Videos:" + str(videos))
-        return videos
-
-    def youtube_play(self, title=None, videos=None):
-        # were video links provided ?
-        videos = videos or []
-        if isinstance(videos, basestring):
-            videos = [videos]
-        # was a search requested ?
-        if title is not None:
-            self.speak_dialog("searching.youtube", {"music": title})
-            videos = self.youtube_search(title)
-        # do we have vids to play ?
-        if len(videos):
-            self.play(self.get_real_url(videos[0]))
-            for video in videos[1:]:
-                self.audio.queue(self.get_real_url(video))
+        # search youtube, cache results for speed in repeat queries
+        if phrase in self._search_cache:
+            results = self._search_cache[phrase]
         else:
-            raise AssertionError("no youtube video urls to play")
+            try:
+                results = search_youtube(phrase)["videos"]
+            except Exception as e:
+                # youtube can break at any time... they also love AB testing
+                # often only some queries will break...
+                return []
+            self._search_cache[phrase] = results
 
-    def get_real_url(self, video):
-        try:
-            myvid = pafy.new(video)
-            stream = myvid.getbestaudio()
-            return stream.url
-        except Exception as e:
-            self.log.error(e)
+        # filter results
+        def parse_duration(video):
+            # parse duration into (int) seconds
+            # {'length': '3:49'
+            length = 0
+            nums = video.get("length", "").split(":")
+            if len(nums) == 1 and nums[0].isdigit():
+                # seconds
+                length = int(nums[0])
+            elif len(nums) == 2:
+                # minutes : seconds
+                length = int(nums[0]) * 60 + \
+                         int(nums[0])
+            elif len(nums) == 3:
+                # hours : minutes : seconds
+                length = int(nums[0]) * 60 * 60 + \
+                         int(nums[0]) * 60 + \
+                         int(nums[0])
+            # better-cps expects milliseconds
+            return length * 1000
 
-    def search(self, text):
-        query = quote(text)
-        url = "https://www.youtube.com/results?search_query=" + query
-        response = urlopen(url)
-        html = response.read()
-        soup = BeautifulSoup(html, "lxml")
-        vid = soup.findAll(attrs={'class': 'yt-uix-tile-link'})
-        videos = []
-        if vid:
-            for video in vid:
-                videos.append(video['href'].replace("/watch?v=", ""))
-        return videos
+        def is_music(match):
+            return self.voc_match(match["title"], "music")
+
+        def is_podcast(match):
+            # lets require duration above 30min to exclude trailers and such
+            dur = parse_duration(match) / 1000  # convert ms to seconds
+            if dur < 30 * 60:
+                return False
+            return self.voc_match(match["title"], "podcast")
+
+        def is_documentary(match):
+            # lets require duration above 20min to exclude trailers and such
+            dur = parse_duration(match) / 1000  # convert ms to seconds
+            if dur < 20 * 60:
+                return False
+            return self.voc_match(match["title"], "documentary")
+
+        if media_type == CPSMatchType.MUSIC:
+            # only return videos assumed to be music
+            # music.voc contains things like "full album" and "music"
+            # if any of these is present in the title, the video is valid
+            results = [r for r in results if is_music(r)]
+
+        if media_type == CPSMatchType.PODCAST:
+            # only return videos assumed to be podcasts
+            # podcast.voc contains things like "podcast"
+            results = [r for r in results if is_podcast(r)]
+
+        if media_type == CPSMatchType.DOCUMENTARY:
+            # only return videos assumed to be documentaries
+            # podcast.voc contains things like "documentary"
+            results = [r for r in results if is_documentary(r)]
+
+        # score
+        def calc_score(match):
+            score = base_score
+            # this will give score of 100 if query is included in video title
+            score += 100 * fuzzy_match(
+                phrase.lower(), match["title"].lower(),
+                strategy=MatchStrategy.TOKEN_SET_RATIO)
+
+            # small penalty to not return 100 and allow better disambiguation
+            if media_type == CPSMatchType.GENERIC:
+                score -= 10
+            if score >= 100:
+                if media_type == CPSMatchType.AUDIO:
+                    score -= 20  # likely don't want to answer most of these
+                elif media_type != CPSMatchType.VIDEO:
+                    score -= 10
+                elif media_type == CPSMatchType.MUSIC and not is_music(match):
+                    score -= 5
+
+            # youtube gives pretty high scores in general, so we allow it
+            # to run as fallback mode, which assigns lower scores and gives
+            # preference to matches from other skills
+            if self.settings["fallback_mode"]:
+                if not explicit_request:
+                    score -= 25
+            return min(100, score)
+
+        matches = []
+        if CPSPlayback.GUI in playback:
+            matches += [{
+                "match_confidence": calc_score(r),
+                "media_type": CPSMatchType.VIDEO,
+                "length": parse_duration(r),
+                "uri": r["url"],
+                "playback": CPSPlayback.GUI,
+                "image": r["thumbnails"][-1]["url"].split("?")[0],
+                "bg_image": r["thumbnails"][-1]["url"].split("?")[0],
+                "skill_icon": self.skill_icon,
+                "skill_logo": self.skill_icon,  # backwards compat
+                "title": r["title"],
+                "skill_id": self.skill_id
+            } for r in results]
+        if CPSPlayback.AUDIO in playback:
+            matches += [{
+                "match_confidence": calc_score(r) - 15,  # penalty
+                "media_type": CPSMatchType.VIDEO,
+                "length": parse_duration(r),
+                "uri": r["url"],
+                "playback": CPSPlayback.AUDIO,
+                "image": r["thumbnails"][-1]["url"].split("?")[0],
+                "bg_image": r["thumbnails"][-1]["url"].split("?")[0],
+                "skill_icon": self.skill_icon,
+                "skill_logo": self.skill_icon,  # backwards compat
+                "title": r["title"] + " (audio only)",
+                "skill_id": self.skill_id
+            } for r in results]
+
+        return matches
 
 
 def create_skill():
-    return YoutubeSkill()
+    return SimpleYoutubeSkill()

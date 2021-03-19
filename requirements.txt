@@ -1,5 +1,4 @@
 youtube-dl
-lxml
-bs4
 pafy
-mycroft_jarbas_utils>=0.13.7
+ovos_utils>=0.0.8a3
+youtube_searcher
