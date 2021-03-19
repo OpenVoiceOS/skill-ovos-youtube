@@ -56,7 +56,7 @@ class SimpleYoutubeSkill(BetterCommonPlaySkill):
 
         # playback_type defines if results should be GUI / AUDIO / AUDIO + GUI
         # this could be done at individual match level instead if needed
-        if media_type == CPSMatchType.AUDIO:  # TODO or not self.gui.connected
+        if media_type == CPSMatchType.AUDIO or not self.gui.connected:
             playback = [CPSPlayback.AUDIO]
         elif media_type != CPSMatchType.VIDEO:
             playback = [CPSPlayback.GUI, CPSPlayback.AUDIO]
