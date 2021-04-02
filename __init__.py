@@ -1,7 +1,7 @@
 from os.path import join, dirname
 
-from ovos_utils.skills.templates.common_play import BetterCommonPlaySkill
-from ovos_utils.playback import CPSMatchType, CPSPlayback
+from ovos_workshop.skills.common_play import BetterCommonPlaySkill
+from ovos_workshop.frameworks.cps import CPSMatchType, CPSPlayback
 from ovos_utils.parse import fuzzy_match, MatchStrategy
 
 from youtube_searcher import search_youtube
