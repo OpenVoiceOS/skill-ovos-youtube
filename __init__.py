@@ -72,6 +72,8 @@ class SimpleYoutubeSkill(BetterCommonPlaySkill):
             except Exception as e:
                 # youtube can break at any time... they also love AB testing
                 # often only some queries will break...
+                self.log.error("youtube search failed!")
+                self.log.exception(e)
                 return []
             self._search_cache[phrase] = results
 
