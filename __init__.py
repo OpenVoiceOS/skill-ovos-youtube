@@ -1,13 +1,14 @@
 from os.path import join, dirname
 
-from ovos_workshop.skills.common_play import BetterCommonPlaySkill
-from ovos_workshop.frameworks.cps import CPSMatchType, CPSPlayback
+from ovos_workshop.skills.common_play import OVOSCommonPlaybackSkill
+from ovos_workshop.frameworks.playback import CPSMatchType, CPSPlayback, \
+    CPSMatchConfidence
 from ovos_utils.parse import fuzzy_match, MatchStrategy
 
 from youtube_searcher import search_youtube
 
 
-class SimpleYoutubeSkill(BetterCommonPlaySkill):
+class SimpleYoutubeSkill(OVOSCommonPlaybackSkill):
     def __init__(self):
         super(SimpleYoutubeSkill, self).__init__("Simple Youtube")
         self.supported_media = [CPSMatchType.GENERIC,
