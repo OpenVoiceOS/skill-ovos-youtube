@@ -3,3 +3,4 @@ pafy
 ovos_utils>=0.0.12a2
 ovos_workshop>=0.0.3a1
 youtube_searcher>=0.1.6
+rapidfuzz
