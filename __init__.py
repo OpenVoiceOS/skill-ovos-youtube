@@ -135,8 +135,10 @@ class SimpleYoutubeSkill(OVOSCommonPlaybackSkill):
             results = [r for r in results if is_documentary(r)]
 
         # score
-        def calc_score(match):
-            score = base_score
+        def calc_score(match, idx=0):
+            # idx represents the order from youtube
+            score = base_score - idx * 5 # - 5% as we go down the results list
+
             # this will give score of 100 if query is included in video title
             score += 100 * fuzzy_match(
                 phrase.lower(), match["title"].lower(),
@@ -164,7 +166,7 @@ class SimpleYoutubeSkill(OVOSCommonPlaybackSkill):
         matches = []
         if CPSPlayback.GUI in playback:
             matches += [{
-                "match_confidence": calc_score(r),
+                "match_confidence": calc_score(r, idx),
                 "media_type": CPSMatchType.VIDEO,
                 "length": parse_duration(r),
                 "uri": r["url"],
@@ -175,10 +177,13 @@ class SimpleYoutubeSkill(OVOSCommonPlaybackSkill):
                 "skill_logo": self.skill_icon,  # backwards compat
                 "title": r["title"],
                 "skill_id": self.skill_id
-            } for r in results]
+            } for idx, r in enumerate(results)]
+
+        # audio only results after video results
+        max_score = max([r["match_confidence"] for r in matches])
         if CPSPlayback.AUDIO in playback:
             matches += [{
-                "match_confidence": calc_score(r) - 15,  # penalty
+                "match_confidence": calc_score(r, idx) - max_score,
                 "media_type": CPSMatchType.VIDEO,
                 "length": parse_duration(r),
                 "uri": r["url"],
@@ -189,7 +194,7 @@ class SimpleYoutubeSkill(OVOSCommonPlaybackSkill):
                 "skill_logo": self.skill_icon,  # backwards compat
                 "title": r["title"] + " (audio only)",
                 "skill_id": self.skill_id
-            } for r in results]
+            } for idx, r in enumerate(results)]
 
         return matches
 
