@@ -180,21 +180,22 @@ class SimpleYoutubeSkill(OVOSCommonPlaybackSkill):
             } for idx, r in enumerate(results)]
 
         # audio only results after video results
-        min_score = min([r["match_confidence"] for r in matches])
-        if CommonPlayPlaybackType.AUDIO in playback:
-            matches += [{
-                "match_confidence": calc_score(r, idx) - 1,
-                "media_type": CommonPlayMediaType.VIDEO,
-                "length": parse_duration(r),
-                "uri": r["url"],
-                "playback": CommonPlayPlaybackType.AUDIO,
-                "image": r["thumbnails"][-1]["url"].split("?")[0],
-                "bg_image": r["thumbnails"][-1]["url"].split("?")[0],
-                "skill_icon": self.skill_icon,
-                "skill_logo": self.skill_icon,  # backwards compat
-                "title": r["title"] + " (audio only)",
-                "skill_id": self.skill_id
-            } for idx, r in enumerate(results)]
+        if matches:
+            min_score = min([r["match_confidence"] for r in matches])
+            if CommonPlayPlaybackType.AUDIO in playback:
+                matches += [{
+                    "match_confidence": calc_score(r, idx) - 1,
+                    "media_type": CommonPlayMediaType.VIDEO,
+                    "length": parse_duration(r),
+                    "uri": r["url"],
+                    "playback": CommonPlayPlaybackType.AUDIO,
+                    "image": r["thumbnails"][-1]["url"].split("?")[0],
+                    "bg_image": r["thumbnails"][-1]["url"].split("?")[0],
+                    "skill_icon": self.skill_icon,
+                    "skill_logo": self.skill_icon,  # backwards compat
+                    "title": r["title"] + " (audio only)",
+                    "skill_id": self.skill_id
+                } for idx, r in enumerate(results)]
 
         return matches
 
