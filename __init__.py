@@ -36,7 +36,7 @@ class SimpleYoutubeSkill(OVOSCommonPlaybackSkill):
                 "match_confidence": CommonPlayMatchConfidence.HIGH,
                 "media_type":  CPSMatchType.MUSIC,
                 "uri": "https://audioservice.or.gui.will.play.this",
-                "playback": CommonPlayPlaybackType.GUI,
+                "playback": CommonPlayPlaybackType.VIDEO,
                 "image": "http://optional.audioservice.jpg",
                 "bg_image": "http://optional.audioservice.background.jpg"
             }
@@ -55,14 +55,14 @@ class SimpleYoutubeSkill(OVOSCommonPlaybackSkill):
             phrase = self.remove_voc(phrase, "youtube")
             explicit_request = True
 
-        # playback_type defines if results should be GUI / AUDIO / AUDIO + GUI
+        # playback_type defines if results should be VIDEO / AUDIO / AUDIO + VIDEO
         # this could be done at individual match level instead if needed
         if media_type == CommonPlayMediaType.AUDIO or not self.gui.connected:
             playback = [CommonPlayPlaybackType.AUDIO]
         elif media_type != CommonPlayMediaType.VIDEO:
-            playback = [CommonPlayPlaybackType.GUI, CommonPlayPlaybackType.AUDIO]
+            playback = [CommonPlayPlaybackType.VIDEO, CommonPlayPlaybackType.AUDIO]
         else:
-            playback = [CommonPlayPlaybackType.GUI]
+            playback = [CommonPlayPlaybackType.VIDEO]
 
         # search youtube, cache results for speed in repeat queries
         if phrase in self._search_cache:
@@ -98,7 +98,7 @@ class SimpleYoutubeSkill(OVOSCommonPlaybackSkill):
                 length = int(nums[0]) * 60 * 60 + \
                          int(nums[0]) * 60 + \
                          int(nums[0])
-            # better-cps expects milliseconds
+            # better-common_play expects milliseconds
             return length * 1000
 
         def is_music(match):
@@ -164,13 +164,13 @@ class SimpleYoutubeSkill(OVOSCommonPlaybackSkill):
             return min(100, score)
 
         matches = []
-        if CommonPlayPlaybackType.GUI in playback:
+        if CommonPlayPlaybackType.VIDEO in playback:
             matches += [{
                 "match_confidence": calc_score(r, idx),
                 "media_type": CommonPlayMediaType.VIDEO,
                 "length": parse_duration(r),
                 "uri": r["url"],
-                "playback": CommonPlayPlaybackType.GUI,
+                "playback": CommonPlayPlaybackType.VIDEO,
                 "image": r["thumbnails"][-1]["url"].split("?")[0],
                 "bg_image": r["thumbnails"][-1]["url"].split("?")[0],
                 "skill_icon": self.skill_icon,
@@ -180,10 +180,10 @@ class SimpleYoutubeSkill(OVOSCommonPlaybackSkill):
             } for idx, r in enumerate(results)]
 
         # audio only results after video results
-        max_score = max([r["match_confidence"] for r in matches])
+        min_score = min([r["match_confidence"] for r in matches])
         if CommonPlayPlaybackType.AUDIO in playback:
             matches += [{
-                "match_confidence": calc_score(r, idx) - max_score,
+                "match_confidence": min_score - idx,
                 "media_type": CommonPlayMediaType.VIDEO,
                 "length": parse_duration(r),
                 "uri": r["url"],
