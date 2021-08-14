@@ -1,6 +1,5 @@
 from os.path import join, dirname
-
-from ovos_workshop.skills.common_play import OVOSCommonPlaybackSkill
+from ovos_workshop.skills.common_play import OVOSCommonPlaybackSkill, common_play_search
 from ovos_workshop.frameworks.playback import CommonPlayMediaType, CommonPlayPlaybackType, \
     CommonPlayMatchConfidence
 from ovos_utils.parse import fuzzy_match, MatchStrategy
@@ -23,7 +22,8 @@ class SimpleYoutubeSkill(OVOSCommonPlaybackSkill):
             self.settings["fallback_mode"] = False
 
     # common play
-    def CPS_search(self, phrase, media_type=CommonPlayMediaType.GENERIC):
+    @common_play_search()
+    def search_youtube(self, phrase, media_type=CommonPlayMediaType.GENERIC):
         """Analyze phrase to see if it is a play-able phrase with this skill.
 
         Arguments:
