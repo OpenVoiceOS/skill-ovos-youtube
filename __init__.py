@@ -183,7 +183,7 @@ class SimpleYoutubeSkill(OVOSCommonPlaybackSkill):
         min_score = min([r["match_confidence"] for r in matches])
         if CommonPlayPlaybackType.AUDIO in playback:
             matches += [{
-                "match_confidence": min_score - idx,
+                "match_confidence": calc_score(r, idx) - 1,
                 "media_type": CommonPlayMediaType.VIDEO,
                 "length": parse_duration(r),
                 "uri": r["url"],
