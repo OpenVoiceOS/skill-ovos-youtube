@@ -12,7 +12,6 @@ class SimpleYoutubeSkill(OVOSCommonPlaybackSkill):
         super(SimpleYoutubeSkill, self).__init__("Simple Youtube")
         self.supported_media = [CommonPlayMediaType.GENERIC,
                                 CommonPlayMediaType.MUSIC,
-                                CommonPlayMediaType.AUDIO,
                                 CommonPlayMediaType.PODCAST,
                                 CommonPlayMediaType.DOCUMENTARY,
                                 CommonPlayMediaType.VIDEO]
@@ -20,6 +19,10 @@ class SimpleYoutubeSkill(OVOSCommonPlaybackSkill):
         self.skill_icon = join(dirname(__file__), "ui", "ytube.jpg")
         if "fallback_mode" not in self.settings:
             self.settings["fallback_mode"] = False
+        if "audio_only" not in self.settings:
+            self.settings["audio_only"] = False
+        if "video_only" not in self.settings:
+            self.settings["video_only"] = True
 
     # common play
     @common_play_search()
@@ -60,7 +63,8 @@ class SimpleYoutubeSkill(OVOSCommonPlaybackSkill):
         if media_type == CommonPlayMediaType.AUDIO or not self.gui.connected:
             playback = [CommonPlayPlaybackType.AUDIO]
         elif media_type != CommonPlayMediaType.VIDEO:
-            playback = [CommonPlayPlaybackType.VIDEO, CommonPlayPlaybackType.AUDIO]
+            playback = [CommonPlayPlaybackType.VIDEO,
+                        CommonPlayPlaybackType.AUDIO]
         else:
             playback = [CommonPlayPlaybackType.VIDEO]
 
@@ -164,7 +168,21 @@ class SimpleYoutubeSkill(OVOSCommonPlaybackSkill):
             return min(100, score)
 
         matches = []
-        if CommonPlayPlaybackType.VIDEO in playback:
+        if self.settings["audio_only"]:
+            matches += [{
+                "match_confidence": calc_score(r, idx),
+                "media_type": CommonPlayMediaType.VIDEO,
+                "length": parse_duration(r),
+                "uri": r["url"],
+                "playback": CommonPlayPlaybackType.AUDIO,
+                "image": r["thumbnails"][-1]["url"].split("?")[0],
+                "bg_image": r["thumbnails"][-1]["url"].split("?")[0],
+                "skill_icon": self.skill_icon,
+                "skill_logo": self.skill_icon,  # backwards compat
+                "title": r["title"] + " (audio only)",
+                "skill_id": self.skill_id
+            } for idx, r in enumerate(results)]
+        else:
             matches += [{
                 "match_confidence": calc_score(r, idx),
                 "media_type": CommonPlayMediaType.VIDEO,
@@ -179,10 +197,8 @@ class SimpleYoutubeSkill(OVOSCommonPlaybackSkill):
                 "skill_id": self.skill_id
             } for idx, r in enumerate(results)]
 
-        # audio only results after video results
-        if matches:
-            min_score = min([r["match_confidence"] for r in matches])
-            if CommonPlayPlaybackType.AUDIO in playback:
+            if not self.settings["video_only"]:
+                # add audio only duplicate results
                 matches += [{
                     "match_confidence": calc_score(r, idx) - 1,
                     "media_type": CommonPlayMediaType.VIDEO,
