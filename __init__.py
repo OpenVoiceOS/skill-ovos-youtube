@@ -1,9 +1,10 @@
 from os.path import join, dirname
-from ovos_workshop.skills.common_play import OVOSCommonPlaybackSkill, common_play_search
-from ovos_workshop.frameworks.playback import CommonPlayMediaType, CommonPlayPlaybackType, \
-    CommonPlayMatchConfidence
-from ovos_utils.parse import fuzzy_match, MatchStrategy
 
+from ovos_utils.parse import fuzzy_match, MatchStrategy
+from ovos_workshop.frameworks.playback import CommonPlayMediaType, \
+    CommonPlayPlaybackType
+from ovos_workshop.skills.common_play import OVOSCommonPlaybackSkill, \
+    common_play_search
 from youtube_searcher import search_youtube
 
 
@@ -57,16 +58,6 @@ class SimpleYoutubeSkill(OVOSCommonPlaybackSkill):
             base_score += 50
             phrase = self.remove_voc(phrase, "youtube")
             explicit_request = True
-
-        # playback_type defines if results should be VIDEO / AUDIO / AUDIO + VIDEO
-        # this could be done at individual match level instead if needed
-        if media_type == CommonPlayMediaType.AUDIO or not self.gui.connected:
-            playback = [CommonPlayPlaybackType.AUDIO]
-        elif media_type != CommonPlayMediaType.VIDEO:
-            playback = [CommonPlayPlaybackType.VIDEO,
-                        CommonPlayPlaybackType.AUDIO]
-        else:
-            playback = [CommonPlayPlaybackType.VIDEO]
 
         # search youtube, cache results for speed in repeat queries
         if phrase in self._search_cache:
@@ -141,7 +132,7 @@ class SimpleYoutubeSkill(OVOSCommonPlaybackSkill):
         # score
         def calc_score(match, idx=0):
             # idx represents the order from youtube
-            score = base_score - idx * 5 # - 5% as we go down the results list
+            score = base_score - idx * 5  # - 5% as we go down the results list
 
             # this will give score of 100 if query is included in video title
             score += 100 * fuzzy_match(
@@ -156,7 +147,8 @@ class SimpleYoutubeSkill(OVOSCommonPlaybackSkill):
                     score -= 20  # likely don't want to answer most of these
                 elif media_type != CommonPlayMediaType.VIDEO:
                     score -= 10
-                elif media_type == CommonPlayMediaType.MUSIC and not is_music(match):
+                elif media_type == CommonPlayMediaType.MUSIC and not is_music(
+                        match):
                     score -= 5
 
             # youtube gives pretty high scores in general, so we allow it
@@ -173,7 +165,7 @@ class SimpleYoutubeSkill(OVOSCommonPlaybackSkill):
                 "match_confidence": calc_score(r, idx),
                 "media_type": CommonPlayMediaType.VIDEO,
                 "length": parse_duration(r),
-                "uri": r["url"],
+                "uri": "youtube//" + r["url"],
                 "playback": CommonPlayPlaybackType.AUDIO,
                 "image": r["thumbnails"][-1]["url"].split("?")[0],
                 "bg_image": r["thumbnails"][-1]["url"].split("?")[0],
@@ -187,7 +179,7 @@ class SimpleYoutubeSkill(OVOSCommonPlaybackSkill):
                 "match_confidence": calc_score(r, idx),
                 "media_type": CommonPlayMediaType.VIDEO,
                 "length": parse_duration(r),
-                "uri": r["url"],
+                "uri": "youtube//" + r["url"],
                 "playback": CommonPlayPlaybackType.VIDEO,
                 "image": r["thumbnails"][-1]["url"].split("?")[0],
                 "bg_image": r["thumbnails"][-1]["url"].split("?")[0],
@@ -203,7 +195,7 @@ class SimpleYoutubeSkill(OVOSCommonPlaybackSkill):
                     "match_confidence": calc_score(r, idx) - 1,
                     "media_type": CommonPlayMediaType.VIDEO,
                     "length": parse_duration(r),
-                    "uri": r["url"],
+                    "uri": "youtube//" + r["url"],
                     "playback": CommonPlayPlaybackType.AUDIO,
                     "image": r["thumbnails"][-1]["url"].split("?")[0],
                     "bg_image": r["thumbnails"][-1]["url"].split("?")[0],
