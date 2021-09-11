@@ -20,8 +20,12 @@ class SimpleYoutubeSkill(OVOSCommonPlaybackSkill):
         self.skill_icon = join(dirname(__file__), "ui", "ytube.jpg")
         if "fallback_mode" not in self.settings:
             self.settings["fallback_mode"] = False
-        if "audio_only" not in self.settings:
-            self.settings["audio_only"] = False
+
+        if "audio_mode" not in self.settings:
+            # audio mode favors the audio player whenever it makes sense,
+            # it will cast more video types to audio (music videos,
+            # full concert, lyrics videos...)
+            self.settings["audio_mode"] = False
 
     def search_youtube(self, phrase):
         # search youtube, cache results for speed in repeat queries
@@ -64,7 +68,13 @@ class SimpleYoutubeSkill(OVOSCommonPlaybackSkill):
         return length * 1000
 
     def is_music(self, match):
-        return self.voc_match(match["title"], "music")
+        if self.settings["audio_mode"]:
+            return self.voc_match(match["title"], "music") or\
+                   self.voc_match(match["title"], "music_video") or \
+                   self.voc_match(match["title"], "live") and \
+                   not self.voc_match(match["title"], "video_filter")
+        return self.voc_match(match["title"], "music") and \
+               not self.voc_match(match["title"], "video_filter")
 
     def is_podcast(self, match):
         # lets require duration above 30min to exclude trailers and such
@@ -132,7 +142,7 @@ class SimpleYoutubeSkill(OVOSCommonPlaybackSkill):
             "bg_image": r["thumbnails"][-1]["url"].split("?")[0],
             "skill_icon": self.skill_icon,
             "skill_logo": self.skill_icon,  # backwards compat
-            "title": r["title"] + " (audio only)",
+            "title": r["title"],
             "skill_id": self.skill_id
         } for idx, r in enumerate(results)]
 
@@ -155,11 +165,19 @@ class SimpleYoutubeSkill(OVOSCommonPlaybackSkill):
             phrase = self.remove_voc(phrase, "youtube")
             explicit_request = True
 
+        # video vs audio playback
+        pb = CommonPlayPlaybackType.VIDEO
+
         results = self.search_youtube(phrase)
 
         # primitive results filtering
         # music handled by the other search method
         results = [r for r in results if not self.is_music(r)]
+
+        if self.settings["audio_mode"]:
+            results = [r for r in results
+                       if not self.voc_match(r["title"], "video_filter")]
+            pb = CommonPlayPlaybackType.AUDIO
 
         if media_type == CommonPlayMediaType.PODCAST:
             # only return videos assumed to be podcasts
@@ -201,8 +219,6 @@ class SimpleYoutubeSkill(OVOSCommonPlaybackSkill):
                     score -= 25
             return min(100, score)
 
-        pb = CommonPlayPlaybackType.AUDIO if self.settings["audio_only"] \
-            else CommonPlayPlaybackType.VIDEO
         matches = [{
             "match_confidence": calc_score(r, idx),
             "media_type": CommonPlayMediaType.VIDEO,
