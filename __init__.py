@@ -2,8 +2,7 @@ from os.path import join, dirname
 
 from json_database import JsonStorageXDG
 from ovos_utils.parse import fuzzy_match, MatchStrategy
-from ovos_workshop.frameworks.playback import MediaType, \
-    PlaybackType
+from ovos_plugin_common_play.ocp import MediaType, PlaybackType
 from ovos_workshop.skills.common_play import OVOSCommonPlaybackSkill, \
     common_play_search
 from youtube_searcher import search_youtube
@@ -24,13 +23,10 @@ class SimpleYoutubeSkill(OVOSCommonPlaybackSkill):
             self.settings["fallback_mode"] = False
 
         if "audio_mode" not in self.settings:
-            # audio mode favors the audio _player whenever it makes sense,
+            # audio mode favors the audio_player whenever it makes sense,
             # it will cast more video types to audio (music videos,
             # full concert, lyrics videos...)
             self.settings["audio_mode"] = False
-
-        self.settings["audio_mode"] = False
-        self.settings["fallback_mode"] = False
 
     def search_youtube(self, phrase):
         # media youtube, cache results for speed in repeat queries
