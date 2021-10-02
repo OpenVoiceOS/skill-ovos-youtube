@@ -4,7 +4,7 @@ from json_database import JsonStorageXDG
 from ovos_utils.parse import fuzzy_match, MatchStrategy
 from ovos_plugin_common_play.ocp import MediaType, PlaybackType
 from ovos_workshop.skills.common_play import OVOSCommonPlaybackSkill, \
-    common_play_search
+    ocp_search
 from youtube_searcher import search_youtube
 
 
@@ -93,7 +93,7 @@ class SimpleYoutubeSkill(OVOSCommonPlaybackSkill):
         return self.voc_match(match["title"], "documentary")
 
     # common play
-    @common_play_search()
+    @ocp_search()
     def search_youtube_music(self, phrase,
                              media_type=MediaType.GENERIC):
         # media only for media we are 100% sure is music
@@ -154,7 +154,7 @@ class SimpleYoutubeSkill(OVOSCommonPlaybackSkill):
 
         return matches
 
-    @common_play_search()
+    @ocp_search()
     def search_youtube_videos(self, phrase,
                               media_type=MediaType.GENERIC):
         # match the request media_type
