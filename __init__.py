@@ -13,6 +13,8 @@ class SimpleYoutubeSkill(OVOSCommonPlaybackSkill):
         super(SimpleYoutubeSkill, self).__init__("Simple Youtube")
         self.supported_media = [MediaType.GENERIC, MediaType.VIDEO]
         self.skill_icon = join(dirname(__file__), "ui", "ytube.jpg")
+
+    def initialize(self):
         if "fallback_mode" not in self.settings:
             self.settings["fallback_mode"] = False
 
