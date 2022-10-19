@@ -19,7 +19,7 @@ jobs:
           python-version: 3.8
       - name: Install Translate Tools
         run: |
-          python -m pip install git+https://github.com/NeonGeckoCom/neon-lang-plugin-google_translate
+          pip install git+https://github.com/NeonGeckoCom/neon-lang-plugin-libretranslate
       - name: Auto Translate
         run: |
           python scripts/translate.py

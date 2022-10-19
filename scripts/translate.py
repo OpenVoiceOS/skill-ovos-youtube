@@ -1,9 +1,9 @@
 import os
 from os.path import dirname, join, exists
 from ovos_utils.bracket_expansion import expand_options
-from googletranslate_neon_plugin import GoogleTranslator
+from libretranslate_neon_plugin import LibreTranslatePlugin
 
-tx = GoogleTranslator()
+tx = LibreTranslatePlugin(config={"libretranslate_host": "https://libretranslate.2022.us"})
 
 src_lang = "en-us"
 target_langs = ["es-es", "de-de", "fr-fr", "it-it", "pt-pt"]
@@ -38,10 +38,11 @@ for lang in target_langs:
                 try:
                     translated = tx.translate(l2, target=lang, source=src_lang)
                     tx_lines.append(translated)
-                except:
+                except Exception as e:
+                    print(e)
                     continue
-
-        with open(dst, "w") as f:
-            f.write(f"# auto translated from {src_lang} to {lang}\n")
-            for translated in set(tx_lines):
-                f.write(translated + "\n")
+        if tx_lines:
+            with open(dst, "w") as f:
+                f.write(f"# auto translated from {src_lang} to {lang}\n")
+                for translated in set(tx_lines):
+                    f.write(translated + "\n")
