@@ -6,6 +6,8 @@ from ovos_workshop.skills.common_play import OVOSCommonPlaybackSkill, \
     ocp_search
 from tutubo import YoutubeSearch
 from tutubo.models import *
+from ovos_utils.process_utils import RuntimeRequirements
+from ovos_utils import classproperty
 
 
 class SimpleYoutubeSkill(OVOSCommonPlaybackSkill):
@@ -13,6 +15,18 @@ class SimpleYoutubeSkill(OVOSCommonPlaybackSkill):
         super(SimpleYoutubeSkill, self).__init__("Simple Youtube")
         self.supported_media = [MediaType.GENERIC, MediaType.VIDEO]
         self.skill_icon = join(dirname(__file__), "ui", "ytube.jpg")
+
+    @classproperty
+    def runtime_requirements(self):
+        return RuntimeRequirements(internet_before_load=True,
+                                   network_before_load=True,
+                                   gui_before_load=True,
+                                   requires_internet=True,
+                                   requires_network=True,
+                                   requires_gui=True,
+                                   no_internet_fallback=False,
+                                   no_network_fallback=False,
+                                   no_gui_fallback=False)
 
     def initialize(self):
         if "fallback_mode" not in self.settings:
