@@ -14,7 +14,7 @@ class SimpleYoutubeSkill(OVOSCommonPlaybackSkill):
     def __init__(self):
         super(SimpleYoutubeSkill, self).__init__("Simple Youtube")
         self.supported_media = [MediaType.GENERIC, MediaType.VIDEO]
-        self.skill_icon = join(dirname(__file__), "ui", "ytube.jpg")
+        self.skill_icon = join(dirname(__file__), "res", "ytube.jpg")
 
     @classproperty
     def runtime_requirements(self):
