@@ -14,7 +14,7 @@ from ovos_utils import classproperty
 class SimpleYoutubeSkill(OVOSCommonPlaybackSkill):
     def __init__(self, *args, **kwargs):
         super().__init__(supported_media = [MediaType.GENERIC, MediaType.VIDEO],
-                         skill_icon = join(dirname(__file__), "ui", "ytube.jpg"),
+                         skill_icon = join(dirname(__file__), "res", "ytube.jpg"),
                          *args, **kwargs)
 
     @classproperty
