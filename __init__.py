@@ -1,9 +1,10 @@
 from os.path import join, dirname
 
-from ovos_plugin_common_play.ocp import MediaType, PlaybackType
+from ovos_utils.ocp import MediaType, PlaybackType
 from ovos_utils.parse import fuzzy_match, MatchStrategy
-from ovos_workshop.skills.common_play import OVOSCommonPlaybackSkill, \
-    ocp_search
+
+from ovos_workshop.decorators import ocp_search
+from ovos_workshop.skills.common_play import OVOSCommonPlaybackSkill
 from tutubo import YoutubeSearch
 from tutubo.models import *
 from ovos_utils.process_utils import RuntimeRequirements
@@ -11,10 +12,10 @@ from ovos_utils import classproperty
 
 
 class SimpleYoutubeSkill(OVOSCommonPlaybackSkill):
-    def __init__(self):
-        super(SimpleYoutubeSkill, self).__init__("Simple Youtube")
-        self.supported_media = [MediaType.GENERIC, MediaType.VIDEO]
-        self.skill_icon = join(dirname(__file__), "ui", "ytube.jpg")
+    def __init__(self, *args, **kwargs):
+        super().__init__(supported_media = [MediaType.GENERIC, MediaType.VIDEO],
+                         skill_icon = join(dirname(__file__), "ui", "ytube.jpg"),
+                         *args, **kwargs)
 
     @classproperty
     def runtime_requirements(self):
@@ -139,7 +140,3 @@ class SimpleYoutubeSkill(OVOSCommonPlaybackSkill):
                 }
             else:
                 continue
-
-
-def create_skill():
-    return SimpleYoutubeSkill()
