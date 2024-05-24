@@ -1,0 +1,35 @@
+{
+    "authorname": "OpenVoiceOS",
+    "foldername": "skill-ovos-youtube",
+    "url": "https://github.com/OpenVoiceOS/skill-ovos-youtube",
+    "branch": "dev",
+    "license": "apache-2.0",
+    "tags": [
+        "Entertainment",
+        "permissive-license"
+    ],
+    "short_description": "simple youtube skill for better-cps",
+    "last_updated": "2024-05-24T23:51:26Z",
+    "icon": "https://github.com/OpenVoiceOS/skill-ovos-youtube/ui/ytube.jpg",
+    "skillname": "Simple Youtube Skill",
+    "description": "search youtube by voice!\n\nthis skill can be configured as a fallback matcher for play queries, you can set `self.settings[\"fallback_mode\"] = True`\nand returned results will have lower confidence, other skills should take precedence most of the time\n\nbuilt on top of [youtube_searcher](https://github.com/HelloChatterbox/youtube_searcher)\n\n![](./gui.png)\n![](./gui2.png)",
+    "examples": [],
+    "credits": [
+        "JarbasAl"
+    ],
+    "category": "Entertainment",
+    "categories": [
+        "Entertainment"
+    ],
+    "requirements": {
+        "python": [
+            "youtube_searcher>=0.1.6",
+            "ovos_workshop~=0.0, >=0.0.11a4",
+            "tutubo>=0.0.2a1",
+            "ovos-utils~=0.0, >=0.1.0a18"
+        ],
+        "skill": [],
+        "system": {}
+    },
+    "desktopFile": false
+}
