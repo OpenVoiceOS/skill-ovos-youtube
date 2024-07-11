@@ -14,6 +14,7 @@ class SimpleYoutubeSkill(OVOSCommonPlaybackSkill):
     def __init__(self, *args, **kwargs):
         super().__init__(supported_media=[MediaType.GENERIC, MediaType.VIDEO],
                          skill_icon=join(dirname(__file__), "res", "ytube.jpg"),
+                         skill_voc_filename="youtube_skill",
                          *args, **kwargs)
 
     @classproperty
@@ -70,7 +71,7 @@ class SimpleYoutubeSkill(OVOSCommonPlaybackSkill):
         if media_type == MediaType.VIDEO:
             base_score += 25
         else:
-            base_score -= 15
+            base_score -= 50
 
         explicit_request = False
         if self.voc_match(phrase, "youtube"):
