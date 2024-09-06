@@ -2,7 +2,15 @@
 
 ## [Unreleased](https://github.com/OpenVoiceOS/skill-ovos-youtube/tree/HEAD)
 
-[Full Changelog](https://github.com/OpenVoiceOS/skill-ovos-youtube/compare/v0.2...HEAD)
+[Full Changelog](https://github.com/OpenVoiceOS/skill-ovos-youtube/compare/V0.0.1...HEAD)
+
+**Merged pull requests:**
+
+- fix:raw\_urls [\#23](https://github.com/OpenVoiceOS/skill-ovos-youtube/pull/23) ([JarbasAl](https://github.com/JarbasAl))
+
+## [V0.0.1](https://github.com/OpenVoiceOS/skill-ovos-youtube/tree/V0.0.1) (2024-09-02)
+
+[Full Changelog](https://github.com/OpenVoiceOS/skill-ovos-youtube/compare/v0.2...V0.0.1)
 
 **Closed issues:**
 
