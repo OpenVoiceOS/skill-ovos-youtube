@@ -1,55 +1,12 @@
 # Changelog
 
-## [V0.1.1a1](https://github.com/OpenVoiceOS/skill-ovos-youtube/tree/V0.1.1a1) (2024-09-06)
+## [Unreleased](https://github.com/OpenVoiceOS/skill-ovos-youtube/tree/HEAD)
 
-[Full Changelog](https://github.com/OpenVoiceOS/skill-ovos-youtube/compare/V0.0.1...V0.1.1a1)
-
-**Merged pull requests:**
-
-- fix:raw\_urls [\#23](https://github.com/OpenVoiceOS/skill-ovos-youtube/pull/23) ([JarbasAl](https://github.com/JarbasAl))
-
-## [V0.0.1](https://github.com/OpenVoiceOS/skill-ovos-youtube/tree/V0.0.1) (2024-09-02)
-
-[Full Changelog](https://github.com/OpenVoiceOS/skill-ovos-youtube/compare/v0.2...V0.0.1)
-
-**Closed issues:**
-
-- Can you please make it headless? [\#17](https://github.com/OpenVoiceOS/skill-ovos-youtube/issues/17)
-- ovos-0826, error message on install -but said it installed [\#11](https://github.com/OpenVoiceOS/skill-ovos-youtube/issues/11)
-- Cant install ovos common play framework [\#10](https://github.com/OpenVoiceOS/skill-ovos-youtube/issues/10)
-- Title search means searching for a YouTuber can produce unexpected results [\#8](https://github.com/OpenVoiceOS/skill-ovos-youtube/issues/8)
-- improve matching [\#7](https://github.com/OpenVoiceOS/skill-ovos-youtube/issues/7)
-- Only a loading spinner is being shown [\#6](https://github.com/OpenVoiceOS/skill-ovos-youtube/issues/6)
-- Incompatible with latest version of ovos-workshop [\#5](https://github.com/OpenVoiceOS/skill-ovos-youtube/issues/5)
+[Full Changelog](https://github.com/OpenVoiceOS/skill-ovos-youtube/compare/V0.1.1...HEAD)
 
 **Merged pull requests:**
 
-- Update Italian translations [\#22](https://github.com/OpenVoiceOS/skill-ovos-youtube/pull/22) ([airon90](https://github.com/airon90))
-- feat/skill\_aliases [\#21](https://github.com/OpenVoiceOS/skill-ovos-youtube/pull/21) ([JarbasAl](https://github.com/JarbasAl))
-- refactor/ocp\_modernize [\#20](https://github.com/OpenVoiceOS/skill-ovos-youtube/pull/20) ([JarbasAl](https://github.com/JarbasAl))
-- feat/runtime\_requirements [\#16](https://github.com/OpenVoiceOS/skill-ovos-youtube/pull/16) ([JarbasAl](https://github.com/JarbasAl))
-- automations [\#15](https://github.com/OpenVoiceOS/skill-ovos-youtube/pull/15) ([JarbasAl](https://github.com/JarbasAl))
-- fix setup [\#14](https://github.com/OpenVoiceOS/skill-ovos-youtube/pull/14) ([JarbasAl](https://github.com/JarbasAl))
-- setup.py template [\#13](https://github.com/OpenVoiceOS/skill-ovos-youtube/pull/13) ([JarbasAl](https://github.com/JarbasAl))
-- Update ovos\_workshop spec [\#12](https://github.com/OpenVoiceOS/skill-ovos-youtube/pull/12) ([NeonDaniel](https://github.com/NeonDaniel))
-- Add german locale [\#9](https://github.com/OpenVoiceOS/skill-ovos-youtube/pull/9) ([Y0ngg4n](https://github.com/Y0ngg4n))
-
-## [v0.2](https://github.com/OpenVoiceOS/skill-ovos-youtube/tree/v0.2) (2021-04-04)
-
-[Full Changelog](https://github.com/OpenVoiceOS/skill-ovos-youtube/compare/v0.1...v0.2)
-
-## [v0.1](https://github.com/OpenVoiceOS/skill-ovos-youtube/tree/v0.1) (2021-03-19)
-
-[Full Changelog](https://github.com/OpenVoiceOS/skill-ovos-youtube/compare/ab005aa5bbe9e3b63a9a10cca38004fbcb82573d...v0.1)
-
-**Closed issues:**
-
-- "An error occurred" \(TypeError: must be type, not classobj\) [\#3](https://github.com/OpenVoiceOS/skill-ovos-youtube/issues/3)
-- Error when connection is slow [\#1](https://github.com/OpenVoiceOS/skill-ovos-youtube/issues/1)
-
-**Merged pull requests:**
-
-- Fix some python2 exclusive code to work also with python3 [\#2](https://github.com/OpenVoiceOS/skill-ovos-youtube/pull/2) ([antlarr](https://github.com/antlarr))
+- chore:automations [\#24](https://github.com/OpenVoiceOS/skill-ovos-youtube/pull/24) ([JarbasAl](https://github.com/JarbasAl))
 
 
 
