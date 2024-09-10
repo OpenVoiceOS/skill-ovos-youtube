@@ -1,11 +1,12 @@
 # Changelog
 
-## [Unreleased](https://github.com/OpenVoiceOS/skill-ovos-youtube/tree/HEAD)
+## [0.1.2a1](https://github.com/OpenVoiceOS/skill-ovos-youtube/tree/0.1.2a1) (2024-09-10)
 
-[Full Changelog](https://github.com/OpenVoiceOS/skill-ovos-youtube/compare/V0.1.1...HEAD)
+[Full Changelog](https://github.com/OpenVoiceOS/skill-ovos-youtube/compare/V0.1.1...0.1.2a1)
 
 **Merged pull requests:**
 
+- fix:setup [\#25](https://github.com/OpenVoiceOS/skill-ovos-youtube/pull/25) ([JarbasAl](https://github.com/JarbasAl))
 - chore:automations [\#24](https://github.com/OpenVoiceOS/skill-ovos-youtube/pull/24) ([JarbasAl](https://github.com/JarbasAl))
 
 
