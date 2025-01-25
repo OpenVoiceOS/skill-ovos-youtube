@@ -1,16 +1,12 @@
 # Changelog
 
-## [0.1.3a1](https://github.com/OpenVoiceOS/skill-ovos-youtube/tree/0.1.3a1) (2024-10-15)
+## [0.1.4a1](https://github.com/OpenVoiceOS/ovos-skill-youtube/tree/0.1.4a1) (2025-01-25)
 
-[Full Changelog](https://github.com/OpenVoiceOS/skill-ovos-youtube/compare/0.1.2...0.1.3a1)
-
-**Closed issues:**
-
-- Not on PyPi [\#19](https://github.com/OpenVoiceOS/skill-ovos-youtube/issues/19)
+[Full Changelog](https://github.com/OpenVoiceOS/ovos-skill-youtube/compare/0.1.3...0.1.4a1)
 
 **Merged pull requests:**
 
-- fix:update\_requirements [\#28](https://github.com/OpenVoiceOS/skill-ovos-youtube/pull/28) ([JarbasAl](https://github.com/JarbasAl))
+- fix automations [\#30](https://github.com/OpenVoiceOS/ovos-skill-youtube/pull/30) ([JarbasAl](https://github.com/JarbasAl))
 
 
 
